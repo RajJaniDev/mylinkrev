@@ -19,7 +19,7 @@ export default function PrivacyPolicy() {
         <p>We use the information we collect to provide, maintain, and improve our services, including generating your custom business page and facilitating AI-generated reviews.</p>
         
         <h2 style={{ marginTop: '2rem' }}>3. Information Sharing</h2>
-        <p>We do not share your personal information with third parties except as necessary to provide our services (e.g., payment processing via Stripe, authentication via Clerk).</p>
+        <p>We do not share your personal information with third parties except as necessary to provide our services (e.g., payment processing via Lemon Squeezy, authentication via Clerk).</p>
         
         <h2 style={{ marginTop: '2rem' }}>4. Security</h2>
         <p>We take reasonable measures to help protect information about you from loss, theft, misuse, and unauthorized access.</p>

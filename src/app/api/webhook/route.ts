@@ -1,46 +1,47 @@
 import { NextRequest, NextResponse } from "next/server";
-import Stripe from "stripe";
+import crypto from "crypto";
 import { supabase } from "@/lib/supabase";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
-  apiVersion: "2026-06-24.dahlia",
-});
-
-const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
-
 export async function POST(req: NextRequest) {
-  const payload = await req.text();
-  const sig = req.headers.get("stripe-signature");
-
-  let event: Stripe.Event;
-
   try {
-    if (!sig || !endpointSecret) {
-      return NextResponse.json({ error: "Missing signature or secret" }, { status: 400 });
-    }
-    event = stripe.webhooks.constructEvent(payload, sig, endpointSecret);
-  } catch (err: any) {
-    console.error("Webhook signature verification failed.", err.message);
-    return NextResponse.json({ error: err.message }, { status: 400 });
-  }
+    const rawBody = await req.text();
+    const signature = req.headers.get("x-signature") || "";
+    const secret = process.env.LEMONSQUEEZY_WEBHOOK_SECRET || "";
 
-  // Handle the checkout.session.completed event
-  if (event.type === 'checkout.session.completed') {
-    const session = event.data.object as Stripe.Checkout.Session;
-    const userId = session.client_reference_id;
+    if (!secret) {
+      console.warn("Webhook secret not configured. Bypassing signature check for dev.");
+    } else {
+      const hmac = crypto.createHmac("sha256", secret);
+      const digest = Buffer.from(hmac.update(rawBody).digest("hex"), "utf8");
+      const signatureBuffer = Buffer.from(signature, "utf8");
 
-    if (userId) {
-      // Fulfill the purchase...
-      const { error } = await supabase
-        .from('businesses')
-        .update({ payment_status: 'completed' })
-        .eq('user_id', userId);
-        
-      if (error) {
-        console.error("Failed to update business payment status:", error);
+      if (digest.length !== signatureBuffer.length || !crypto.timingSafeEqual(digest, signatureBuffer)) {
+        return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
       }
     }
-  }
 
-  return NextResponse.json({ received: true });
+    const payload = JSON.parse(rawBody);
+    const eventName = payload.meta.event_name;
+    const customData = payload.meta.custom_data || {};
+
+    if (eventName === 'order_created') {
+      const businessSlug = customData.business_slug;
+
+      if (businessSlug) {
+        const { error } = await supabase
+          .from('businesses')
+          .update({ payment_status: 'completed' })
+          .eq('slug', businessSlug);
+          
+        if (error) {
+          console.error("Failed to update business payment status:", error);
+        }
+      }
+    }
+
+    return NextResponse.json({ received: true });
+  } catch (err: any) {
+    console.error("Webhook processing failed:", err.message);
+    return NextResponse.json({ error: err.message }, { status: 500 });
+  }
 }
