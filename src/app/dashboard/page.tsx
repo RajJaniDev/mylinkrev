@@ -29,7 +29,7 @@ export default async function Dashboard(
     .eq("user_id", user.id)
     .single();
 
-  const hasPaid = true; // Temporarily bypass payment check
+  const hasPaid = business?.payment_status === "completed";
 
   // Server action to handle the update
   async function updateBusinessDetails(formData: FormData) {
@@ -65,6 +65,7 @@ export default async function Dashboard(
       location: formData.get("location") as string,
       map_url: formData.get("map_url") as string,
       whatsapp: formData.get("whatsapp") as string,
+      email: formData.get("email") as string,
       youtube: formData.get("youtube") as string,
       twitter: formData.get("twitter") as string,
       phone: formData.get("phone") as string,
@@ -228,6 +229,7 @@ export default async function Dashboard(
                <Input label="Google Maps URL" name="map_url" defaultValue={socials.map_url || ''} placeholder="https://maps.app.goo.gl/..." />
                <Input label="Contact Phone Number" name="phone" defaultValue={socials.phone || ''} placeholder="e.g. +1 234 567 8900" />
                <Input label="WhatsApp Number" name="whatsapp" defaultValue={socials.whatsapp || ''} placeholder="e.g. 1234567890 (Country code included)" />
+               <Input label="Email Address" name="email" defaultValue={socials.email || ''} placeholder="contact@example.com" />
                
                <h4 style={{ marginTop: '1rem', color: 'var(--muted)' }}>AI Review Settings</h4>
                <div className="input-group" style={{ flexDirection: 'row', alignItems: 'center', gap: '0.5rem', background: 'rgba(59, 130, 246, 0.1)', padding: '1rem', borderRadius: 'var(--radius-md)' }}>

@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import Link from "next/link";
 import { CopyPhoneNumber } from "@/components/CopyPhoneNumber";
+import { CopyEmail } from "@/components/CopyEmail";
 import { VideoEmbed } from "@/components/VideoEmbed";
 
 export default async function BusinessPage(props: { params: Promise<{ slug: string }> }) {
@@ -78,6 +79,9 @@ export default async function BusinessPage(props: { params: Promise<{ slug: stri
                 <CopyPhoneNumber phone={socials.phone} />
               )}
               {business.description && <p style={{ color: 'var(--secondary-foreground)', fontSize: '1rem', marginTop: '1rem', lineHeight: '1.5' }}>{business.description}</p>}
+              {socials.email && (
+                <CopyEmail email={socials.email} />
+              )}
             </div>
 
             {/* Primary Action Button (Glowing) */}
