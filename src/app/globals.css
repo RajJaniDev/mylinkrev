@@ -75,6 +75,14 @@ p {
   margin-bottom: 1rem;
 }
 
+.hide-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+.hide-scrollbar::-webkit-scrollbar {
+  display: none; /* Chrome, Safari and Opera */
+}
+
 /* Utilities */
 .container {
   width: 100%;
@@ -238,4 +246,24 @@ p {
 .primary-card:hover {
   transform: scale(1.02);
   box-shadow: var(--shadow-lg);
+}
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #printable-poster, #printable-poster * {
+    visibility: visible;
+  }
+  #printable-poster {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    margin: 0;
+    padding: 2rem !important;
+    box-shadow: none !important;
+    border: none !important;
+    max-width: none !important;
+  }
 }

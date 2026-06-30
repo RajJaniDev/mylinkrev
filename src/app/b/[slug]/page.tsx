@@ -1,8 +1,9 @@
 import { supabase } from "@/lib/supabase";
 import { notFound } from "next/navigation";
-import Link from "next/link";
 import { Button } from "@/components/ui/Button";
+import Link from "next/link";
 import { CopyPhoneNumber } from "@/components/CopyPhoneNumber";
+import { VideoEmbed } from "@/components/VideoEmbed";
 
 export default async function BusinessPage(props: { params: Promise<{ slug: string }> }) {
   const params = await props.params;
@@ -19,17 +20,24 @@ export default async function BusinessPage(props: { params: Promise<{ slug: stri
   }
 
   // Parse social links if needed. Assuming it's JSON { instagram: '...', website: '...' }
-  let socials = {};
+  let socials: any = {};
   try {
     socials = business.social_links || {};
   } catch(e) {}
 
+  const primaryColor = socials.theme_primary || '#3b82f6';
+  const secondaryColor = socials.theme_secondary || primaryColor;
+
   return (
-    <main style={{ minHeight: '100vh', position: 'relative', overflowX: 'hidden' }}>
+    <main style={{ 
+      minHeight: '100vh', position: 'relative', overflowX: 'hidden',
+      '--primary': primaryColor,
+      '--accent': secondaryColor
+    } as React.CSSProperties}>
       {/* Elegant Ambient Full-Page Background */}
       <div style={{
         position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
-        background: 'radial-gradient(circle at 50% 0%, rgba(59, 130, 246, 0.15) 0%, transparent 50%), radial-gradient(circle at 100% 100%, rgba(139, 92, 246, 0.1) 0%, transparent 50%)',
+        background: 'radial-gradient(circle at 50% 0%, color-mix(in srgb, var(--primary) 15%, transparent) 0%, transparent 50%), radial-gradient(circle at 100% 100%, color-mix(in srgb, var(--accent) 10%, transparent) 0%, transparent 50%)',
         backgroundColor: 'var(--background)',
         zIndex: -1
       }} />
@@ -57,7 +65,7 @@ export default async function BusinessPage(props: { params: Promise<{ slug: stri
             <div style={{ textAlign: 'center' }}>
               <h1 style={{ fontSize: '1.75rem', margin: '0', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
                 {business.name}
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="#3b82f6" style={{ marginTop: '4px' }}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="var(--primary)" style={{ marginTop: '4px' }}>
                   <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
                 </svg>
               </h1>
@@ -77,8 +85,8 @@ export default async function BusinessPage(props: { params: Promise<{ slug: stri
                <Link href={`/b/${slug}/rate`} style={{ width: '100%', display: 'block' }}>
                  <div className="glass-card primary-card" style={{ 
                     gap: '0.75rem', padding: '1.5rem', 
-                    background: 'linear-gradient(90deg, #3b82f6, #8b5cf6)',
-                    boxShadow: '0 10px 25px -5px rgba(59, 130, 246, 0.5)',
+                    background: 'linear-gradient(90deg, var(--primary), var(--accent))',
+                    boxShadow: '0 10px 25px -5px color-mix(in srgb, var(--primary) 50%, transparent)',
                     border: 'none', transform: 'scale(1)', transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
                   }}>
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" style={{ color: '#fbbf24' }}>
@@ -111,6 +119,24 @@ export default async function BusinessPage(props: { params: Promise<{ slug: stri
               </div>
             )}
             
+            {/* Showcase Videos (Horizontal Scroll) */}
+            {socials.showcase_videos && socials.showcase_videos.length > 0 && (
+              <div style={{ width: '100%', marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <h3 style={{ fontSize: '1.25rem', margin: 0, color: 'var(--foreground)', fontWeight: 600 }}>Showcase</h3>
+                <div style={{ 
+                  display: 'flex', gap: '1rem', overflowX: 'auto', paddingBottom: '1rem',
+                  scrollSnapType: 'x mandatory', WebkitOverflowScrolling: 'touch',
+                  marginLeft: '-1.5rem', marginRight: '-1.5rem', paddingLeft: '1.5rem', paddingRight: '1.5rem'
+                }} className="hide-scrollbar">
+                  {socials.showcase_videos.map((url: string, index: number) => (
+                    <div key={index} style={{ scrollSnapAlign: 'start', flexShrink: 0 }}>
+                      <VideoEmbed url={url} />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Social Links List */}
             <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1rem' }}>
                

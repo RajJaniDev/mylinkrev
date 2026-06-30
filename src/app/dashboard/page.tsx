@@ -7,6 +7,9 @@ import { revalidatePath } from "next/cache";
 import { SubmitButton } from "@/components/SubmitButton";
 
 import { UserButton } from "@clerk/nextjs";
+import { PrintButton } from "@/components/PrintButton";
+import { RateQRCodeButton } from "@/components/RateQRCodeButton";
+import { ShowcaseVideosEditor } from "@/components/ShowcaseVideosEditor";
 
 export default async function Dashboard(
   props: {
@@ -68,6 +71,9 @@ export default async function Dashboard(
       booking_url: formData.get("booking_url") as string,
       always_positive: formData.get("always_positive") === "on",
       profile_photo: base64Photo,
+      theme_primary: formData.get("theme_primary") as string,
+      theme_secondary: formData.get("theme_secondary") as string,
+      showcase_videos: JSON.parse(formData.get("showcase_videos") as string || '[]'),
     };
 
     // Since we disabled RLS for now, we just update where user_id matches
@@ -144,11 +150,39 @@ export default async function Dashboard(
              <h2 style={{ marginBottom: '1rem' }}>Welcome back, {business.name}!</h2>
              <p>Your custom link: <strong><a href={`/b/${business.slug}`} target="_blank" style={{ color: 'var(--primary)', textDecoration: 'underline' }}>{`myrevlink.com/b/${business.slug}`}</a></strong></p>
              
-             {/* QR Code */}
-             <div style={{ marginTop: '2rem', padding: '2rem', border: '1px dashed var(--border)', borderRadius: 'var(--radius-md)', textAlign: 'center' }}>
-                <p style={{ marginBottom: '1rem' }}>Your Custom QR Code</p>
-                <div style={{ width: '150px', height: '150px', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <img src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://myrevlink.com/b/${business.slug}`} alt="QR Code" style={{ width: '100%', height: '100%' }} />
+             {/* QR Code Poster */}
+             <div style={{ marginTop: '2rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 0.5rem' }}>
+                  <h3 style={{ margin: 0, fontSize: '1.25rem' }}>Printable QR Poster</h3>
+                  <PrintButton />
+                </div>
+                
+                {/* Printable Area */}
+                <div id="printable-poster" style={{ 
+                  background: 'white', padding: '3rem 2rem', borderRadius: '1rem', 
+                  textAlign: 'center', color: '#000', boxShadow: '0 10px 25px rgba(0,0,0,0.05)',
+                  display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1.5rem',
+                  border: '1px solid var(--border)'
+                }}>
+                   {socials.profile_photo && (
+                     <img src={socials.profile_photo} alt="Profile" style={{ width: '80px', height: '80px', borderRadius: '50%', objectFit: 'cover', border: '2px solid #f3f4f6' }} />
+                   )}
+                   <div>
+                     <h2 style={{ fontSize: '2rem', margin: 0, fontWeight: 'bold' }}>{business.name}</h2>
+                     <p style={{ fontSize: '1.125rem', color: '#4b5563', margin: '0.5rem 0 0 0' }}>Scan the QR code to leave us a review!</p>
+                   </div>
+                   
+                   <div style={{ padding: '1rem', background: 'white', border: '2px solid #e5e7eb', borderRadius: '1rem', marginTop: '0.5rem' }}>
+                     <img 
+                       src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(`https://myrevlink.com/b/${business.slug}/rate`)}`} 
+                       alt="Rate Us QR Code" 
+                       style={{ width: '220px', height: '220px', display: 'block' }} 
+                     />
+                   </div>
+
+                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '1.5rem', color: '#6b7280', fontSize: '0.875rem', fontWeight: 500 }}>
+                     Powered by <strong style={{ color: '#000' }}>MyRevLink</strong>
+                   </div>
                 </div>
              </div>
 
@@ -169,11 +203,24 @@ export default async function Dashboard(
                <Input label="Business Description" name="description" defaultValue={business.description || ''} placeholder="Tell customers about your business" />
                <Input label="Google Review URL" name="google_review_url" defaultValue={business.google_review_url || ''} placeholder="https://g.page/r/..." />
                
+
+
+               <div style={{ marginTop: '-1rem', marginBottom: '1rem', display: 'flex', justifyContent: 'flex-start' }}>
+                 <RateQRCodeButton slug={business.slug} />
+               </div>
+
                <h4 style={{ marginTop: '1rem', color: 'var(--muted)' }}>Social Profiles & Info</h4>
                <Input label="Facebook Page URL" name="facebook" defaultValue={socials.facebook || ''} placeholder="https://facebook.com/yourpage" />
                <Input label="Instagram URL" name="instagram" defaultValue={socials.instagram || ''} placeholder="https://instagram.com/yourprofile" />
                <Input label="YouTube Channel URL" name="youtube" defaultValue={socials.youtube || ''} placeholder="https://youtube.com/@yourchannel" />
                <Input label="Twitter (X) URL" name="twitter" defaultValue={socials.twitter || ''} placeholder="https://x.com/yourprofile" />
+               
+               <h4 style={{ marginTop: '1rem', color: 'var(--muted)' }}>Showcase Videos</h4>
+               <div className="input-group">
+                 <label className="input-label">YouTube or Instagram Video Links</label>
+                 <ShowcaseVideosEditor initialVideos={socials.showcase_videos || []} />
+                 <span style={{ fontSize: '0.8rem', color: 'var(--muted)', marginTop: '0.5rem', display: 'block' }}>Paste direct links to YouTube videos or Instagram Reels/Posts.</span>
+               </div>
                
                <h4 style={{ marginTop: '1rem', color: 'var(--muted)' }}>Location & Contact</h4>
                <Input label="Booking Link (Calendly, etc.)" name="booking_url" defaultValue={socials.booking_url || ''} placeholder="https://calendly.com/your-name" />
@@ -189,6 +236,24 @@ export default async function Dashboard(
                    <strong>Always generate positive reviews</strong> <br/>
                    <span style={{ color: 'var(--muted)', fontSize: '0.8rem' }}>If checked, the AI will generate a 5-star positive review regardless of the rating the user selects.</span>
                  </label>
+               </div>
+               
+               <h4 style={{ marginTop: '1.5rem', color: 'var(--muted)' }}>Brand Colors</h4>
+               <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap' }}>
+                 <div className="input-group" style={{ flex: 1, minWidth: '200px' }}>
+                   <label className="input-label">Primary Color</label>
+                   <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                     <input type="color" name="theme_primary" defaultValue={socials.theme_primary || '#3b82f6'} style={{ width: '40px', height: '40px', padding: 0, border: 'none', borderRadius: 'var(--radius-md)', cursor: 'pointer' }} />
+                     <span style={{ fontSize: '0.875rem', color: 'var(--muted)' }}>Main buttons and accents</span>
+                   </div>
+                 </div>
+                 <div className="input-group" style={{ flex: 1, minWidth: '200px' }}>
+                   <label className="input-label">Secondary Color (Optional)</label>
+                   <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                     <input type="color" name="theme_secondary" defaultValue={socials.theme_secondary || '#8b5cf6'} style={{ width: '40px', height: '40px', padding: 0, border: 'none', borderRadius: 'var(--radius-md)', cursor: 'pointer' }} />
+                     <span style={{ fontSize: '0.875rem', color: 'var(--muted)' }}>Used for beautiful gradients</span>
+                   </div>
+                 </div>
                </div>
                
                <div style={{ marginTop: '1rem' }}>
