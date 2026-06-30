@@ -23,20 +23,34 @@ export async function POST(req: NextRequest) {
 
     const origin = req.headers.get("origin") || "http://localhost:3000";
 
-    if (name && slug) {
+    if (slug) {
       const finalSlug = slug.toLowerCase().replace(/\s+/g, '-');
       
-      // Create business record as pending
-      const { data: businessData, error } = await supabase.from("businesses").insert({
-        user_id: userId,
-        slug: finalSlug,
-        name,
-        payment_status: 'pending'
-      }).select().single();
-      
-      if (error) {
-        console.error("Supabase insert error:", error);
-        return NextResponse.redirect(`${origin}/dashboard?error=SlugTaken`, { status: 303 });
+      if (name) {
+        // Create business record as pending
+        const { error } = await supabase.from("businesses").insert({
+          user_id: userId,
+          slug: finalSlug,
+          name,
+          payment_status: 'pending'
+        });
+        
+        if (error) {
+          console.error("Supabase insert error:", error);
+          return NextResponse.redirect(`${origin}/dashboard?error=SlugTaken`, { status: 303 });
+        }
+      } else {
+        // Resuming payment: check if business exists and is pending
+        const { data: existing } = await supabase
+          .from("businesses")
+          .select("payment_status")
+          .eq("slug", finalSlug)
+          .eq("user_id", userId)
+          .single();
+          
+        if (!existing || existing.payment_status === 'completed') {
+          return NextResponse.redirect(`${origin}/dashboard?error=InvalidRequest`, { status: 303 });
+        }
       }
 
       // If we don't have Lemon Squeezy configured yet, just bypass for now so the user isn't totally blocked while setting up
