@@ -32,3 +32,28 @@ CREATE POLICY "Users can update own business."
 
 -- To bypass RLS for server-side updates (using Service Role Key):
 -- We will rely on Next.js server actions / API routes to validate the Clerk user session and perform DB operations.
+
+-- Create settings table
+CREATE TABLE public.settings (
+  key text PRIMARY KEY,
+  value text NOT NULL,
+  description text,
+  updated_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- Enable Row Level Security on settings
+ALTER TABLE public.settings ENABLE ROW LEVEL SECURITY;
+
+-- Allow public read access to settings
+CREATE POLICY "Allow public read access to settings"
+  ON public.settings FOR SELECT
+  USING ( true );
+
+-- Insert default values (assuming default fallback pricing)
+INSERT INTO public.settings (key, value, description) VALUES
+  ('price_usd_amount', '30', 'Price for USD checkouts'),
+  ('price_usd_variant_id', 'YOUR_USD_VARIANT_ID', 'Lemon Squeezy Variant ID for USD checkout'),
+  ('price_inr_amount', '2499', 'Price for INR checkouts'),
+  ('price_inr_variant_id', 'YOUR_INR_VARIANT_ID', 'Lemon Squeezy Variant ID for INR checkout')
+ON CONFLICT (key) DO NOTHING;
+

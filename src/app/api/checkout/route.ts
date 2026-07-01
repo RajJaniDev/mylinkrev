@@ -6,14 +6,55 @@ export async function POST(req: NextRequest) {
   try {
     const apiKey = process.env.LEMONSQUEEZY_API_KEY;
     const storeId = process.env.LEMONSQUEEZY_STORE_ID;
-    const variantId = process.env.LEMONSQUEEZY_VARIANT_ID;
+    
+    if (apiKey) {
+      lemonSqueezySetup({ apiKey });
+    }
+
+    // Geolocation detection (INR for India, USD for others)
+    const isIndiaCookie = req.cookies.get("user_is_india")?.value;
+    let isIndia = false;
+    
+    if (isIndiaCookie !== undefined) {
+      isIndia = isIndiaCookie === "true";
+    } else {
+      const countryHeader = (
+        req.headers.get("cf-ipcountry") || 
+        req.headers.get("x-vercel-ip-country") || 
+        req.headers.get("cloudfront-viewer-country") || 
+        req.headers.get("x-country-code") || 
+        ""
+      ).toUpperCase();
+
+      if (countryHeader === "IN") {
+        isIndia = true;
+      } else {
+        const acceptLang = req.headers.get("accept-language") || "";
+        if (acceptLang.includes("en-IN") || acceptLang.includes("hi-IN")) {
+          isIndia = true;
+        }
+      }
+    }
+
+    // Fetch dynamic pricing settings
+    const { data: settingsData } = await supabase
+      .from("settings")
+      .select("key, value");
+
+    const settings = settingsData?.reduce((acc: any, curr) => {
+      acc[curr.key] = curr.value;
+      return acc;
+    }, {}) || {};
+
+    let variantId = process.env.LEMONSQUEEZY_VARIANT_ID; // fallback env
+    if (isIndia) {
+      variantId = settings.price_inr_variant_id || process.env.LEMONSQUEEZY_INR_VARIANT_ID || variantId;
+    } else {
+      variantId = settings.price_usd_variant_id || process.env.LEMONSQUEEZY_USD_VARIANT_ID || variantId;
+    }
 
     if (!apiKey || !storeId || !variantId) {
-      console.error("Missing Lemon Squeezy configuration");
-      // Fallback for development if keys aren't set yet
-      // return NextResponse.redirect(`${req.headers.get("origin")}/dashboard?error=MissingConfig`, { status: 303 });
-    } else {
-      lemonSqueezySetup({ apiKey });
+      console.error("Missing Lemon Squeezy configuration: storeId =", storeId, "variantId =", variantId);
     }
     
     const formData = await req.formData();

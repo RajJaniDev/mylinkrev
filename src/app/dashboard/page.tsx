@@ -10,6 +10,8 @@ import { UserButton } from "@clerk/nextjs";
 import { PrintButton } from "@/components/PrintButton";
 import { RateQRCodeButton } from "@/components/RateQRCodeButton";
 import { ShowcaseVideosEditor } from "@/components/ShowcaseVideosEditor";
+import RegisterBusinessForm from "@/components/RegisterBusinessForm";
+import { cookies, headers } from "next/headers";
 
 export default async function Dashboard(
   props: {
@@ -19,6 +21,48 @@ export default async function Dashboard(
   const searchParams = await props.searchParams;
   const user = await currentUser();
   if (!user) redirect("/sign-in");
+
+  // Fetch cookies and headers for geo-detection
+  const cookieStore = await cookies();
+  const headersList = await headers();
+
+  // Multi-layered location check
+  let isIndia = false;
+  const isIndiaCookie = cookieStore.get("user_is_india")?.value;
+  if (isIndiaCookie !== undefined) {
+    isIndia = isIndiaCookie === "true";
+  } else {
+    const countryHeader = (
+      headersList.get("cf-ipcountry") || 
+      headersList.get("x-vercel-ip-country") || 
+      headersList.get("cloudfront-viewer-country") || 
+      headersList.get("x-country-code") || 
+      ""
+    ).toUpperCase();
+
+    if (countryHeader === "IN") {
+      isIndia = true;
+    } else {
+      const acceptLang = headersList.get("accept-language") || "";
+      if (acceptLang.includes("en-IN") || acceptLang.includes("hi-IN")) {
+        isIndia = true;
+      }
+    }
+  }
+
+  // Fetch settings from database
+  const { data: settingsData } = await supabase
+    .from("settings")
+    .select("key, value");
+
+  const settings = settingsData?.reduce((acc: any, curr) => {
+    acc[curr.key] = curr.value;
+    return acc;
+  }, {}) || {};
+
+  const priceUsd = settings.price_usd_amount || "30";
+  const priceInr = settings.price_inr_amount || "2499";
+  const priceText = isIndia ? `₹${priceInr}` : `$${priceUsd}`;
 
   // Fetch business for this user
   // In a real app with Clerk + Supabase, we would use Supabase JWT integration. 
@@ -68,6 +112,7 @@ export default async function Dashboard(
       email: formData.get("email") as string,
       youtube: formData.get("youtube") as string,
       twitter: formData.get("twitter") as string,
+      linkedin: formData.get("linkedin") as string,
       phone: formData.get("phone") as string,
       booking_url: formData.get("booking_url") as string,
       always_positive: formData.get("always_positive") === "on",
@@ -128,13 +173,8 @@ export default async function Dashboard(
         {!business ? (
           <div>
             <h2>Register Your Business</h2>
-            <p style={{ color: 'var(--muted)', marginBottom: '2rem' }}>Claim your custom link and pay the one-time $30 fee to unlock all features.</p>
-            <form action="/api/checkout" method="POST" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              <input type="hidden" name="userId" value={user.id} />
-              <Input label="Business Name" name="name" required placeholder="e.g. Acme Corp" />
-              <Input label="Custom Link (Slug)" name="slug" required placeholder="e.g. acme-corp" />
-              <Button type="submit" variant="primary">Pay $30 & Register</Button>
-            </form>
+            <p style={{ color: 'var(--muted)', marginBottom: '2rem' }}>Claim your custom link and pay the one-time {priceText} fee to unlock all features.</p>
+            <RegisterBusinessForm userId={user.id} priceText={priceText} />
           </div>
         ) : !hasPaid ? (
           <div>
@@ -143,7 +183,7 @@ export default async function Dashboard(
             <form action="/api/checkout" method="POST">
                <input type="hidden" name="userId" value={user.id} />
                <input type="hidden" name="slug" value={business.slug} />
-               <Button type="submit" variant="primary">Pay $30 Now</Button>
+               <Button type="submit" variant="primary">Pay {priceText} Now</Button>
             </form>
           </div>
         ) : (
@@ -152,40 +192,48 @@ export default async function Dashboard(
              <p>Your custom link: <strong><a href={`/b/${business.slug}`} target="_blank" style={{ color: 'var(--primary)', textDecoration: 'underline' }}>{`myrevlink.com/b/${business.slug}`}</a></strong></p>
              
              {/* QR Code Poster */}
-             <div style={{ marginTop: '2rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 0.5rem' }}>
-                  <h3 style={{ margin: 0, fontSize: '1.25rem' }}>Printable QR Poster</h3>
-                  <PrintButton />
-                </div>
-                
-                {/* Printable Area */}
-                <div id="printable-poster" style={{ 
-                  background: 'white', padding: '3rem 2rem', borderRadius: '1rem', 
-                  textAlign: 'center', color: '#000', boxShadow: '0 10px 25px rgba(0,0,0,0.05)',
-                  display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1.5rem',
-                  border: '1px solid var(--border)'
-                }}>
-                   {socials.profile_photo && (
-                     <img src={socials.profile_photo} alt="Profile" style={{ width: '80px', height: '80px', borderRadius: '50%', objectFit: 'cover', border: '2px solid #f3f4f6' }} />
-                   )}
-                   <div>
-                     <h2 style={{ fontSize: '2rem', margin: 0, fontWeight: 'bold' }}>{business.name}</h2>
-                     <p style={{ fontSize: '1.125rem', color: '#4b5563', margin: '0.5rem 0 0 0' }}>Scan the QR code to leave us a review!</p>
-                   </div>
-                   
-                   <div style={{ padding: '1rem', background: 'white', border: '2px solid #e5e7eb', borderRadius: '1rem', marginTop: '0.5rem' }}>
-                     <img 
-                       src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(`https://myrevlink.com/b/${business.slug}/rate`)}`} 
-                       alt="Rate Us QR Code" 
-                       style={{ width: '220px', height: '220px', display: 'block' }} 
-                     />
-                   </div>
+             {business.google_review_url ? (
+               <div style={{ marginTop: '2rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 0.5rem' }}>
+                    <h3 style={{ margin: 0, fontSize: '1.25rem' }}>Printable QR Poster</h3>
+                    <PrintButton />
+                  </div>
+                  
+                  {/* Printable Area */}
+                  <div id="printable-poster" style={{ 
+                    background: 'white', padding: '3rem 2rem', borderRadius: '1rem', 
+                    textAlign: 'center', color: '#000', boxShadow: '0 10px 25px rgba(0,0,0,0.05)',
+                    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1.5rem',
+                    border: '1px solid var(--border)'
+                  }}>
+                     {socials.profile_photo && (
+                       <img src={socials.profile_photo} alt="Profile" style={{ width: '80px', height: '80px', borderRadius: '50%', objectFit: 'cover', border: '2px solid #f3f4f6' }} />
+                     )}
+                     <div>
+                       <h2 style={{ fontSize: '2rem', margin: 0, fontWeight: 'bold' }}>{business.name}</h2>
+                       <p style={{ fontSize: '1.125rem', color: '#4b5563', margin: '0.5rem 0 0 0' }}>Scan the QR code to leave us a review!</p>
+                     </div>
+                     
+                     <div style={{ padding: '1rem', background: 'white', border: '2px solid #e5e7eb', borderRadius: '1rem', marginTop: '0.5rem' }}>
+                       <img 
+                         src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(`https://myrevlink.com/b/${business.slug}/rate`)}`} 
+                         alt="Rate Us QR Code" 
+                         style={{ width: '220px', height: '220px', display: 'block' }} 
+                       />
+                     </div>
 
-                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '1.5rem', color: '#6b7280', fontSize: '0.875rem', fontWeight: 500 }}>
-                     Powered by <strong style={{ color: '#000' }}>MyRevLink</strong>
-                   </div>
-                </div>
-             </div>
+                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '1.5rem', color: '#6b7280', fontSize: '0.875rem', fontWeight: 500 }}>
+                       Powered by <strong style={{ color: '#000' }}>MyRevLink</strong>
+                     </div>
+                  </div>
+               </div>
+             ) : (
+               <div style={{ marginTop: '2rem', padding: '1.5rem', background: 'rgba(59, 130, 246, 0.05)', border: '1px dashed var(--primary)', borderRadius: '1rem', textAlign: 'center' }}>
+                 <p style={{ margin: 0, color: 'var(--secondary-foreground)', fontSize: '0.95rem' }}>
+                   ℹ️ <strong>Set your Google Review URL below</strong> to unlock the Printable QR Poster and "Rate us on Google" features.
+                 </p>
+               </div>
+             )}
 
              <form action={updateBusinessDetails} style={{ marginTop: '2rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                <h3 style={{ marginBottom: '1rem', borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem' }}>Edit Details</h3>
@@ -206,15 +254,18 @@ export default async function Dashboard(
                
 
 
-               <div style={{ marginTop: '-1rem', marginBottom: '1rem', display: 'flex', justifyContent: 'flex-start' }}>
-                 <RateQRCodeButton slug={business.slug} />
-               </div>
+               {business.google_review_url && (
+                 <div style={{ marginTop: '-1rem', marginBottom: '1rem', display: 'flex', justifyContent: 'flex-start' }}>
+                   <RateQRCodeButton slug={business.slug} />
+                 </div>
+               )}
 
                <h4 style={{ marginTop: '1rem', color: 'var(--muted)' }}>Social Profiles & Info</h4>
                <Input label="Facebook Page URL" name="facebook" defaultValue={socials.facebook || ''} placeholder="https://facebook.com/yourpage" />
                <Input label="Instagram URL" name="instagram" defaultValue={socials.instagram || ''} placeholder="https://instagram.com/yourprofile" />
                <Input label="YouTube Channel URL" name="youtube" defaultValue={socials.youtube || ''} placeholder="https://youtube.com/@yourchannel" />
                <Input label="Twitter (X) URL" name="twitter" defaultValue={socials.twitter || ''} placeholder="https://x.com/yourprofile" />
+               <Input label="LinkedIn Profile URL" name="linkedin" defaultValue={socials.linkedin || ''} placeholder="https://linkedin.com/in/yourprofile" />
                
                <h4 style={{ marginTop: '1rem', color: 'var(--muted)' }}>Showcase Videos</h4>
                <div className="input-group">
