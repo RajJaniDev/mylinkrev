@@ -1,13 +1,44 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import Image from "next/image";
+import { supabase } from "@/lib/supabase";
+import { headers } from "next/headers";
 
-export default function Home() {
+export default async function Home() {
+  const reqHeaders = await headers();
+  let isIndia = false;
+  
+  // Detect region
+  const country = reqHeaders.get("cf-ipcountry");
+  if (country === "IN") {
+    isIndia = true;
+  } else {
+    const acceptLang = reqHeaders.get("accept-language") || "";
+    if (acceptLang.includes("en-IN") || acceptLang.includes("hi-IN")) {
+      isIndia = true;
+    }
+  }
+
+  // Fetch pricing from settings table
+  const { data: settingsData } = await supabase
+    .from("settings")
+    .select("key, value");
+
+  const settings = settingsData?.reduce((acc: any, curr) => {
+    acc[curr.key] = curr.value;
+    return acc;
+  }, {}) || {};
+
+  const usdPrice = settings.price_usd_amount || "30";
+  const inrPrice = settings.price_inr_amount || "2499";
+
+  const priceSymbol = isIndia ? "₹" : "$";
+  const priceAmount = isIndia ? inrPrice : usdPrice;
   return (
     <main className="animate-fade-in" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', overflowX: 'hidden' }}>
       
       {/* HEADER / NAVBAR */}
-      <header className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1.5rem 2rem', position: 'absolute', top: 0, left: 0, right: 0, zIndex: 10 }}>
+      <header className="container header-nav">
         <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', textDecoration: 'none' }}>
           <Image src="/logo.png" alt="MyRevLink Logo" width={28} height={28} style={{ objectFit: 'contain' }} />
           <span style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#172554' }}>MyRevLink</span>
@@ -34,8 +65,22 @@ export default function Home() {
         <div className="container hero-grid" style={{ position: 'relative', zIndex: 1 }}>
           
           {/* LEFT COLUMN */}
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', textAlign: 'left' }}>
+          <div className="hero-content">
             
+            {/* Product Hunt Badge */}
+            <div style={{ marginBottom: '1.25rem' }}>
+              <a href="https://www.producthunt.com/products/myrevlink?embed=true&utm_source=badge-featured&utm_medium=badge&utm_campaign=badge-myrevlink" target="_blank" rel="noopener noreferrer">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img 
+                  src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1185494&theme=light&t=1782982543541" 
+                  alt="MyRevLink - Turn Happy Customers into 5-Star Reviews, Automatically | Product Hunt" 
+                  style={{ width: '250px', height: '54px' }} 
+                  width="250" 
+                  height="54" 
+                />
+              </a>
+            </div>
+
             {/* Trust Badge */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: '#e0e7ff', color: '#3730a3', padding: '0.5rem 1rem', borderRadius: '9999px', fontSize: '0.75rem', fontWeight: 600, marginBottom: '1rem' }}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
@@ -44,10 +89,10 @@ export default function Home() {
 
             {/* Promo Badge */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: '#fef3c7', color: '#d97706', padding: '0.6rem 1.25rem', borderRadius: '9999px', fontSize: '0.875rem', fontWeight: 700, marginBottom: '1.5rem', border: '1px solid #fde68a' }}>
-              🔥 Launch Offer: First 15 customers get lifetime access for just $20! (Save 33%)
+              🔥 Launch Offer: Get lifetime access for just {priceSymbol}{priceAmount}!
             </div>
 
-            <h1 style={{ fontSize: '4rem', marginBottom: '1.5rem', lineHeight: 1.1, letterSpacing: '-0.02em', color: '#0f172a', fontWeight: 800 }}>
+            <h1 className="hero-title">
               Turn Happy Customers into <span style={{ color: '#2563eb' }}>5-Star Reviews</span>, Automatically.
             </h1>
             <p style={{ fontSize: '1.125rem', color: '#475569', marginBottom: '2.5rem', lineHeight: 1.6, maxWidth: '95%' }}>
@@ -56,7 +101,7 @@ export default function Home() {
 
             <div className="hero-grid-buttons" style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap', width: '100%', marginBottom: '1.5rem' }}>
               <Link href="/sign-up">
-                <Button variant="primary" style={{ padding: '1.25rem 2.5rem', fontSize: '1rem', borderRadius: '8px', background: '#3b82f6', border: 'none', boxShadow: '0 4px 14px rgba(59, 130, 246, 0.4)' }}>Get Started for $20</Button>
+                <Button variant="primary" style={{ padding: '1.25rem 2.5rem', fontSize: '1rem', borderRadius: '8px', background: '#3b82f6', border: 'none', boxShadow: '0 4px 14px rgba(59, 130, 246, 0.4)' }}>Get Started for {priceSymbol}{priceAmount}</Button>
               </Link>
               <Link href="#how-it-works">
                 <Button variant="secondary" style={{ padding: '1.25rem 2rem', fontSize: '1rem', borderRadius: '8px', background: 'transparent', border: '2px solid #3b82f6', color: '#3b82f6', fontWeight: 600 }}>
@@ -78,16 +123,8 @@ export default function Home() {
           </div>
 
           {/* RIGHT COLUMN */}
-          <div style={{ position: 'relative', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-            <div style={{ 
-              background: 'white', 
-              padding: '1.5rem', 
-              borderRadius: '24px', 
-              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.15)',
-              width: '100%',
-              maxWidth: '650px',
-              border: '1px solid #f8fafc'
-            }}>
+          <div style={{ position: 'relative', display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%' }}>
+            <div className="mockup-card">
               <Image 
                 src="/revire_with_qr.png" 
                 alt="MyRevLink App Mockup" 
@@ -203,7 +240,7 @@ export default function Home() {
           <h2 style={{ fontSize: '2.5rem', textAlign: 'center', marginBottom: '1rem', color: '#0f172a', fontWeight: 800 }}>Frequently Asked Questions</h2>
           <p style={{ color: '#475569', fontSize: '1.125rem', maxWidth: '600px', margin: '0 auto 4rem auto', textAlign: 'center' }}>Everything you need to know about MyRevLink.</p>
           
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '2rem', maxWidth: '1000px', margin: '0 auto' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem', maxWidth: '1000px', margin: '0 auto' }}>
             
             <div style={{ padding: '2rem', background: 'white', borderRadius: '20px', boxShadow: '0 4px 20px -2px rgba(0,0,0,0.02)', border: '1px solid #f1f5f9' }}>
               <h3 style={{ fontSize: '1.2rem', marginBottom: '0.75rem', color: '#0f172a', fontWeight: 700 }}>Do my customers need an app to use this?</h3>
@@ -217,7 +254,7 @@ export default function Home() {
 
             <div style={{ padding: '2rem', background: 'white', borderRadius: '20px', boxShadow: '0 4px 20px -2px rgba(0,0,0,0.02)', border: '1px solid #f1f5f9' }}>
               <h3 style={{ fontSize: '1.2rem', marginBottom: '0.75rem', color: '#0f172a', fontWeight: 700 }}>Is this a monthly subscription?</h3>
-              <p style={{ color: '#475569', lineHeight: 1.6, margin: 0, fontSize: '0.95rem' }}>No, we believe in simple pricing. You pay a one-time fee of $20 (launch promo) and gain lifetime access to your custom link, unlimited AI generations, and your dashboard.</p>
+              <p style={{ color: '#475569', lineHeight: 1.6, margin: 0, fontSize: '0.95rem' }}>No, we believe in simple pricing. You pay a one-time fee of {priceSymbol}{priceAmount} (launch promo) and gain lifetime access to your custom link, unlimited AI generations, and your dashboard.</p>
             </div>
 
             <div style={{ padding: '2rem', background: 'white', borderRadius: '20px', boxShadow: '0 4px 20px -2px rgba(0,0,0,0.02)', border: '1px solid #f1f5f9' }}>
@@ -249,8 +286,8 @@ export default function Home() {
             {/* Promo Ribbon */}
             <div style={{ 
               position: 'absolute', 
-              top: '20px', 
-              right: '-40px', 
+              top: '18px', 
+              right: '-36px', 
               background: '#e11d48', 
               color: 'white', 
               padding: '0.5rem 3rem', 
@@ -259,7 +296,7 @@ export default function Home() {
               transform: 'rotate(45deg)',
               boxShadow: '0 4px 10px rgba(0,0,0,0.1)'
             }}>
-              $20 ONLY
+              {priceSymbol}{priceAmount} ONLY
             </div>
             <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '5px', background: '#3b82f6' }} />
             
@@ -267,7 +304,7 @@ export default function Home() {
             <p style={{ color: '#64748b', fontSize: '0.875rem', marginBottom: '2rem' }}>Every feature included, forever.</p>
             
             <div style={{ fontSize: '4.5rem', fontWeight: 800, marginBottom: '0.5rem', color: '#0f172a', display: 'flex', justifyContent: 'center', alignItems: 'flex-start' }}>
-              <span style={{ fontSize: '2rem', marginTop: '0.5rem', fontWeight: 600 }}>$</span>20
+              <span style={{ fontSize: '2rem', marginTop: '0.5rem', fontWeight: 600 }}>{priceSymbol}</span>{priceAmount}
             </div>
             <p style={{ color: '#e11d48', fontSize: '0.875rem', fontWeight: 700, marginBottom: '2rem' }}>*Promo price for first 15 customers</p>
             

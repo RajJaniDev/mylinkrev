@@ -42,11 +42,30 @@ export default function RateBusinessPage() {
       });
 
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
+      if (!res.ok) throw new Error(data.error || "API returned status " + res.status);
 
       setReview(data.review);
     } catch (err: any) {
       setError("Failed to generate review. Please try again.");
+      
+      // Log client-side error to our logging API
+      try {
+        await fetch("/api/log-error", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            errorMessage: err.message || String(err),
+            errorStack: err.stack || null,
+            apiRoute: `/b/${slug}/rate`,
+            requestData: {
+              businessName: business?.name,
+              stars: rating
+            }
+          })
+        });
+      } catch (logErr) {
+        console.error("Failed to report client-side error to logging endpoint:", logErr);
+      }
     } finally {
       setLoading(false);
     }

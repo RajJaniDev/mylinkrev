@@ -1,13 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
 import Groq from "groq-sdk";
+import { supabase } from "@/lib/supabase";
 
 export async function POST(req: NextRequest) {
+  let businessName = "";
+  let stars = 0;
+  let businessDescription = "";
+
   try {
+    const body = await req.json();
+    businessName = body.businessName;
+    stars = body.stars;
+    businessDescription = body.businessDescription;
+
     const groq = new Groq({
       apiKey: process.env.GROQ_API_KEY || 'dummy_key',
     });
-    
-    const { businessName, stars, businessDescription } = await req.json();
 
     if (!businessName || !stars) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
@@ -37,6 +45,19 @@ CRITICAL INSTRUCTIONS:
     return NextResponse.json({ review: generatedReview });
   } catch (error: any) {
     console.error("Groq AI Error:", error);
+
+    // Log the error to Supabase database
+    try {
+      await supabase.from("error_logs").insert({
+        error_message: error.message || String(error),
+        error_stack: error.stack || null,
+        api_route: "/api/generate-review",
+        request_data: { businessName, stars, businessDescription }
+      });
+    } catch (dbError) {
+      console.error("Failed to log error to Supabase:", dbError);
+    }
+
     return NextResponse.json({ error: "Failed to generate review" }, { status: 500 });
   }
 }

@@ -57,3 +57,27 @@ INSERT INTO public.settings (key, value, description) VALUES
   ('price_inr_variant_id', 'YOUR_INR_VARIANT_ID', 'Lemon Squeezy Variant ID for INR checkout')
 ON CONFLICT (key) DO NOTHING;
 
+-- Create error_logs table
+CREATE TABLE public.error_logs (
+  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  error_message text NOT NULL,
+  error_stack text,
+  api_route text,
+  request_data jsonb,
+  created_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- Enable Row Level Security on error_logs
+ALTER TABLE public.error_logs ENABLE ROW LEVEL SECURITY;
+
+-- Allow public insert access (so the app can log client/server errors)
+CREATE POLICY "Allow public insert to error_logs"
+  ON public.error_logs FOR INSERT
+  WITH CHECK ( true );
+
+-- Allow public read access to error_logs for developer debugging
+CREATE POLICY "Allow public read access to error_logs"
+  ON public.error_logs FOR SELECT
+  USING ( true );
+
+
