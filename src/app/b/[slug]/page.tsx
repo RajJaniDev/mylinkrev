@@ -113,17 +113,55 @@ export default async function BusinessPage(props: { params: Promise<{ slug: stri
                   <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
                 </svg>
               </h1>
-              {socials.location && (
-                <p style={{ color: 'var(--muted)', fontSize: '0.875rem', marginTop: '0.25rem', marginBottom: '0', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.25rem' }}>
-                  📍 {socials.location}
-                </p>
+              
+              {(socials.location || socials.map_url) && (
+                <div style={{ marginTop: '0.35rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.35rem' }}>
+                  {socials.location && (
+                    <p style={{ color: 'var(--muted)', fontSize: '0.875rem', margin: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.25rem' }}>
+                      📍 {socials.location}
+                    </p>
+                  )}
+                  {socials.map_url && (
+                    <a 
+                      href={socials.map_url.startsWith('http') ? socials.map_url : `https://${socials.map_url}`} 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      style={{ 
+                        color: 'var(--primary)', 
+                        fontSize: '0.75rem', 
+                        fontWeight: 600, 
+                        textDecoration: 'none', 
+                        display: 'inline-flex', 
+                        alignItems: 'center', 
+                        gap: '0.25rem',
+                        padding: '0.25rem 0.75rem',
+                        borderRadius: '9999px',
+                        background: 'color-mix(in srgb, var(--primary) 10%, transparent)',
+                        border: '1px solid color-mix(in srgb, var(--primary) 20%, transparent)',
+                        transition: 'all 0.2s ease-in-out'
+                      }}
+                    >
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '2px' }}>
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" />
+                        <circle cx="12" cy="10" r="3" />
+                      </svg>
+                      Open in Google Maps
+                    </a>
+                  )}
+                </div>
               )}
+
               {socials.phone && (
                 <CopyPhoneNumber phone={socials.phone} />
               )}
-              {business.description && <p style={{ color: 'var(--secondary-foreground)', fontSize: '1rem', marginTop: '1rem', lineHeight: '1.5' }}>{business.description}</p>}
               {socials.email && (
                 <CopyEmail email={socials.email} />
+              )}
+              
+              {business.description && (
+                <p style={{ color: 'var(--secondary-foreground)', fontSize: '1rem', marginTop: '1.25rem', lineHeight: '1.5' }}>
+                  {business.description}
+                </p>
               )}
             </div>
 
@@ -269,18 +307,7 @@ export default async function BusinessPage(props: { params: Promise<{ slug: stri
                   </a>
                )}
 
-               {/* Map Card */}
-               {socials.map_url && (
-                  <a href={socials.map_url.startsWith('http') ? socials.map_url : `https://${socials.map_url}`} target="_blank" rel="noopener noreferrer" style={{ width: '100%' }}>
-                    <div className="glass-card social-card" style={{ gap: '0.75rem', background: 'var(--background)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-sm)' }}>
-                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ea4335" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" />
-                        <circle cx="12" cy="10" r="3" />
-                      </svg>
-                      Open in Google Maps
-                    </div>
-                  </a>
-               )}
+
             </div>
 
             <Link href="/" target="_blank" style={{ marginTop: '3rem', fontSize: '0.875rem', color: 'var(--muted)', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.5rem', opacity: 0.8, transition: 'opacity 0.2s' }}>
