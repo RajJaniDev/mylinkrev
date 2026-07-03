@@ -340,6 +340,21 @@ export default async function Home() {
             </div>
           </div>
           <div>
+            <h4 style={{ marginBottom: '1.25rem', color: '#0f172a', fontSize: '0.95rem', fontWeight: 700 }}>Industries</h4>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', width: '240px' }}>
+              <Link href="/industries/dentists" style={{ color: '#475569', fontSize: '0.875rem', textDecoration: 'none' }}>Dentists</Link>
+              <Link href="/industries/restaurants" style={{ color: '#475569', fontSize: '0.875rem', textDecoration: 'none' }}>Restaurants</Link>
+              <Link href="/industries/real-estate" style={{ color: '#475569', fontSize: '0.875rem', textDecoration: 'none' }}>Real Estate</Link>
+              <Link href="/industries/hair-salons" style={{ color: '#475569', fontSize: '0.875rem', textDecoration: 'none' }}>Hair Salons</Link>
+              <Link href="/industries/plumbers" style={{ color: '#475569', fontSize: '0.875rem', textDecoration: 'none' }}>Plumbers</Link>
+              <Link href="/industries/gyms" style={{ color: '#475569', fontSize: '0.875rem', textDecoration: 'none' }}>Gyms</Link>
+              <Link href="/industries/lawyers" style={{ color: '#475569', fontSize: '0.875rem', textDecoration: 'none' }}>Lawyers</Link>
+              <Link href="/industries/contractors" style={{ color: '#475569', fontSize: '0.875rem', textDecoration: 'none' }}>Contractors</Link>
+              <Link href="/industries/doctors" style={{ color: '#475569', fontSize: '0.875rem', textDecoration: 'none' }}>Doctors</Link>
+              <Link href="/industries/hotels" style={{ color: '#475569', fontSize: '0.875rem', textDecoration: 'none' }}>Hotels</Link>
+            </div>
+          </div>
+          <div>
             <h4 style={{ marginBottom: '1.25rem', color: '#0f172a', fontSize: '0.95rem', fontWeight: 700 }}>Company</h4>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
               <Link href="/about-us" style={{ color: '#475569', fontSize: '0.875rem', textDecoration: 'none' }}>About Us</Link>

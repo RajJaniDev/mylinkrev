@@ -43,10 +43,32 @@ export default function RootLayout({
 }>) {
   const gaId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "MyRevLink",
+    "operatingSystem": "All",
+    "applicationCategory": "BusinessApplication",
+    "offers": {
+      "@type": "Offer",
+      "price": "30.00",
+      "priceCurrency": "USD",
+      "priceValidUntil": "2027-12-31"
+    },
+    "description": "Generate 5-star Google reviews in one tap using our AI magic. Perfect for local businesses looking to boost their local SEO."
+  };
+
   return (
     <ClerkProvider>
       <html lang="en" className={`${inter.variable}`}>
         <body>
+          {/* Global Product Schema */}
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{
+              __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c'),
+            }}
+          />
           {gaId && (
             <>
               {/* Google Analytics Script */}

@@ -4,6 +4,39 @@ import { Button } from "@/components/ui/Button";
 import Link from "next/link";
 import { ContactSection } from "@/components/ContactSection";
 import { ShowcaseTabs } from "@/components/ShowcaseTabs";
+import type { Metadata } from "next";
+
+export async function generateMetadata(
+  props: { params: Promise<{ slug: string }> }
+): Promise<Metadata> {
+  const params = await props.params;
+  const { slug } = params;
+
+  const { data: business } = await supabase
+    .from("businesses")
+    .select("name, description, social_links")
+    .eq("slug", slug)
+    .single();
+
+  if (!business) {
+    return {
+      title: "Business Profile Not Found | MyRevLink",
+    };
+  }
+
+  const socials = business.social_links as any || {};
+  const description = business.description || `Read reviews, rate, and connect with ${business.name} on MyRevLink.`;
+
+  return {
+    title: `${business.name} - Rate & Connect on MyRevLink`,
+    description,
+    openGraph: {
+      title: `${business.name} | Google Reviews & Links`,
+      description,
+      images: socials.profile_photo ? [{ url: socials.profile_photo }] : [],
+    },
+  };
+}
 
 export default async function BusinessPage(props: { params: Promise<{ slug: string }> }) {
   const params = await props.params;
@@ -28,12 +61,42 @@ export default async function BusinessPage(props: { params: Promise<{ slug: stri
   const primaryColor = socials.theme_primary || '#3b82f6';
   const secondaryColor = socials.theme_secondary || primaryColor;
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "LocalBusiness",
+    "name": business.name,
+    "description": business.description || `Connect with ${business.name} and rate us on Google.`,
+    "url": `https://myrevlink.in/b/${slug}`,
+    "image": socials.profile_photo || undefined,
+    "telephone": socials.phone || undefined,
+    "email": socials.email || undefined,
+    "address": socials.location ? {
+      "@type": "PostalAddress",
+      "streetAddress": socials.location,
+    } : undefined,
+    "sameAs": [
+      socials.facebook,
+      socials.instagram,
+      socials.twitter,
+      socials.linkedin,
+      socials.youtube,
+      business.google_review_url,
+    ].filter((link) => link && link.startsWith("http")),
+  };
+
   return (
     <main style={{ 
       minHeight: '100vh', position: 'relative', overflowX: 'hidden',
       '--primary': primaryColor,
       '--accent': secondaryColor
     } as React.CSSProperties}>
+      {/* Dynamic JSON-LD Schema */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c'),
+        }}
+      />
       {/* Elegant Ambient Full-Page Background */}
       <div style={{
         position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
@@ -217,8 +280,8 @@ export default async function BusinessPage(props: { params: Promise<{ slug: stri
               />
             )}
 
-            <Link href="/" target="_blank" style={{ marginTop: '3rem', fontSize: '0.875rem', color: 'var(--muted)', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.5rem', opacity: 0.8, transition: 'opacity 0.2s' }}>
-               Powered by <strong style={{ color: 'var(--foreground)' }}>MyRevLink</strong>
+            <Link href="/" target="_blank" style={{ marginTop: '3rem', fontSize: '0.875rem', color: 'var(--muted)', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.5rem', opacity: 0.8, transition: 'opacity 0.2s' }} title="MyRevLink - Free Google Review Generator">
+               Powered by <strong style={{ color: 'var(--foreground)' }}>MyRevLink</strong> - Free Google Review Generator
             </Link>
          </div>
       </div>
