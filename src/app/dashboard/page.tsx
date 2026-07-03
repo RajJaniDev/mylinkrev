@@ -185,15 +185,38 @@ export default async function Dashboard(
               <RegisterBusinessForm userId={user.id} priceText={priceText} />
             </div>
           ) : !hasPaid ? (
-            <div>
-              <h2>Payment Pending</h2>
-              <p>Your payment is pending. Please complete the payment to access your dashboard.</p>
-              <form action="/api/checkout" method="POST">
-                 <input type="hidden" name="userId" value={user.id} />
-                 <input type="hidden" name="slug" value={business.slug} />
-                 <Button type="submit" variant="primary">Pay {priceText} Now</Button>
-              </form>
-            </div>
+            searchParams.success === "true" ? (
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "3rem 1rem", textAlign: "center" }}>
+                <div className="spinner" style={{ border: "4px solid rgba(255, 255, 255, 0.1)", borderTop: "4px solid var(--primary)", borderRadius: "50%", width: "40px", height: "40px", animation: "spin 1s linear infinite", marginBottom: "1.5rem" }}></div>
+                <style dangerouslySetInnerHTML={{ __html: `
+                  @keyframes spin {
+                    0% { transform: rotate(0deg); }
+                    100% { transform: rotate(360deg); }
+                  }
+                `}} />
+                <h2>Activating Your Account...</h2>
+                <p style={{ color: "var(--muted)", marginTop: "0.5rem" }}>We are processing your payment and preparing your dashboard. You will be redirected in 3 seconds...</p>
+                <script
+                  dangerouslySetInnerHTML={{
+                    __html: `
+                      setTimeout(() => {
+                        window.location.href = '/dashboard';
+                      }, 3000);
+                    `
+                  }}
+                />
+              </div>
+            ) : (
+              <div>
+                <h2>Payment Pending</h2>
+                <p>Your payment is pending. Please complete the payment to access your dashboard.</p>
+                <form action="/api/checkout" method="POST">
+                   <input type="hidden" name="userId" value={user.id} />
+                   <input type="hidden" name="slug" value={business.slug} />
+                   <Button type="submit" variant="primary">Pay {priceText} Now</Button>
+                </form>
+              </div>
+            )
           ) : (
             <div>
                <h2 style={{ marginBottom: '1rem' }}>Welcome back, {business.name}!</h2>
