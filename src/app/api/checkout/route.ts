@@ -1,15 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createCheckout, lemonSqueezySetup } from "@lemonsqueezy/lemonsqueezy.js";
+import DodoPayments from "dodopayments";
 import { supabase } from "@/lib/supabase";
+import { currentUser } from "@clerk/nextjs/server";
 
 export async function POST(req: NextRequest) {
   try {
-    const apiKey = process.env.LEMONSQUEEZY_API_KEY;
-    const storeId = process.env.LEMONSQUEEZY_STORE_ID;
-    
-    if (apiKey) {
-      lemonSqueezySetup({ apiKey });
-    }
+    const apiKey = process.env.DODO_PAYMENTS_API_KEY;
+    const environment = (process.env.DODO_PAYMENTS_ENVIRONMENT as "test_mode" | "live_mode") || "test_mode";
 
     // Geolocation detection (INR for India, USD for others)
     const isIndiaCookie = req.cookies.get("user_is_india")?.value;
@@ -46,17 +43,20 @@ export async function POST(req: NextRequest) {
       return acc;
     }, {}) || {};
 
-    let variantId = process.env.LEMONSQUEEZY_VARIANT_ID; // fallback env
-    if (isIndia) {
-      variantId = settings.price_inr_variant_id || process.env.LEMONSQUEEZY_INR_VARIANT_ID || variantId;
-    } else {
-      variantId = settings.price_usd_variant_id || process.env.LEMONSQUEEZY_USD_VARIANT_ID || variantId;
-    }
+    let productId = isIndia
+      ? settings.price_inr_variant_id || process.env.DODO_PAYMENTS_INR_PRODUCT_ID
+      : settings.price_usd_variant_id || process.env.DODO_PAYMENTS_USD_PRODUCT_ID;
 
-    if (!apiKey || !storeId || !variantId) {
-      console.error("Missing Lemon Squeezy configuration: storeId =", storeId, "variantId =", variantId);
-    }
-    
+    // Check if configuration is missing or holds placeholder values
+    const isMissingConfig =
+      !apiKey ||
+      apiKey.includes("your_dodo_api_key_here") ||
+      !productId ||
+      productId.includes("your_dodo_inr_product_id_here") ||
+      productId.includes("your_dodo_usd_product_id_here") ||
+      productId.includes("YOUR_INR_VARIANT_ID") ||
+      productId.includes("YOUR_USD_VARIANT_ID");
+
     const formData = await req.formData();
     const userId = formData.get("userId") as string;
     const name = formData.get("name") as string | null;
@@ -94,34 +94,49 @@ export async function POST(req: NextRequest) {
         }
       }
 
-      // If we don't have Lemon Squeezy configured yet, just bypass for now so the user isn't totally blocked while setting up
-      if (!apiKey || !storeId || !variantId) {
-        // Automatically mark complete if no keys (for testing/setup)
+      // If we don't have Dodo Payments configured yet, bypass checkout so the user isn't blocked during setup
+      if (isMissingConfig) {
+        console.warn("Dodo Payments credentials missing or using placeholders. Bypassing checkout and auto-activating business.");
         await supabase.from("businesses").update({ payment_status: 'completed' }).eq('slug', finalSlug);
         return NextResponse.redirect(`${origin}/dashboard?success=true`, { status: 303 });
       }
 
-      // Create Lemon Squeezy checkout
-      const { data: checkout, error: checkoutError } = await createCheckout(storeId, variantId, {
-        checkoutData: {
-          custom: {
-            business_slug: finalSlug // We pass this so the webhook knows which business paid
-          }
-        },
-        productOptions: {
-          redirectUrl: `${origin}/dashboard?success=true`,
-          receiptButtonText: "Return to Dashboard",
-          receiptThankYouNote: "Thank you for joining MyRevLink!"
-        }
+      // Fetch user details from Clerk session to prefill checkout
+      const clerkUser = await currentUser();
+      const email = clerkUser?.emailAddresses?.[0]?.emailAddress || "";
+      const customerName = clerkUser ? `${clerkUser.firstName || ""} ${clerkUser.lastName || ""}`.trim() : "";
+
+      // Initialize Dodo Payments client
+      const client = new DodoPayments({
+        bearerToken: apiKey,
+        environment: environment,
       });
 
-      if (checkoutError || !checkout) {
-        console.error("Lemon Squeezy Checkout Error:", checkoutError);
+      // Create Dodo Payments checkout session
+      const checkoutSession = await client.checkoutSessions.create({
+        product_cart: [
+          {
+            product_id: productId,
+            quantity: 1,
+          },
+        ],
+        customer: {
+          email: email,
+          name: customerName || undefined,
+        },
+        metadata: {
+          business_slug: finalSlug, // Passed so the webhook knows which business paid
+        },
+        return_url: `${origin}/dashboard?success=true`,
+      });
+
+      if (!checkoutSession || !checkoutSession.checkout_url) {
+        console.error("Dodo Payments Checkout Error: Session creation failed or missing checkout_url");
         return NextResponse.redirect(`${origin}/dashboard?error=CheckoutFailed`, { status: 303 });
       }
 
-      // Redirect user to Lemon Squeezy hosted checkout
-      return NextResponse.redirect(checkout.data.attributes.url, { status: 303 });
+      // Redirect user to Dodo Payments hosted checkout
+      return NextResponse.redirect(checkoutSession.checkout_url, { status: 303 });
     }
 
     return NextResponse.redirect(`${origin}/dashboard?error=MissingData`, { status: 303 });

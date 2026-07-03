@@ -10,8 +10,8 @@
   },
   "dependencies": {
     "@clerk/nextjs": "^7.5.9",
-    "@lemonsqueezy/lemonsqueezy.js": "^4.0.0",
     "@supabase/supabase-js": "^2.108.2",
+    "dodopayments": "^2.40.1",
     "groq-sdk": "^1.3.0",
     "lucide-react": "^1.22.0",
     "next": "16.2.9",

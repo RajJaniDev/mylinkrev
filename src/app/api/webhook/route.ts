@@ -1,31 +1,44 @@
 import { NextRequest, NextResponse } from "next/server";
-import crypto from "crypto";
+import DodoPayments from "dodopayments";
 import { supabase } from "@/lib/supabase";
 
 export async function POST(req: NextRequest) {
   try {
     const rawBody = await req.text();
-    const signature = req.headers.get("x-signature") || "";
-    const secret = process.env.LEMONSQUEEZY_WEBHOOK_SECRET || "";
+    const signature = req.headers.get("webhook-signature") || "";
+    const timestamp = req.headers.get("webhook-timestamp") || "";
+    const webhookId = req.headers.get("webhook-id") || "";
+    
+    const apiKey = process.env.DODO_PAYMENTS_API_KEY;
+    const webhookSecret = process.env.DODO_PAYMENTS_WEBHOOK_SECRET;
 
-    if (!secret) {
-      console.warn("Webhook secret not configured. Bypassing signature check for dev.");
+    if (!webhookSecret || webhookSecret.includes("your_dodo_webhook_secret_here")) {
+      console.warn("Webhook secret not configured or using default placeholder. Bypassing signature check.");
     } else {
-      const hmac = crypto.createHmac("sha256", secret);
-      const digest = Buffer.from(hmac.update(rawBody).digest("hex"), "utf8");
-      const signatureBuffer = Buffer.from(signature, "utf8");
+      const client = new DodoPayments({
+        bearerToken: apiKey || "",
+        webhookKey: webhookSecret,
+      });
 
-      if (digest.length !== signatureBuffer.length || !crypto.timingSafeEqual(digest, signatureBuffer)) {
+      try {
+        client.webhooks.unwrap(rawBody, {
+          headers: {
+            "webhook-id": webhookId,
+            "webhook-signature": signature,
+            "webhook-timestamp": timestamp,
+          },
+        });
+      } catch (e: any) {
+        console.error("Signature verification failed:", e.message);
         return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
       }
     }
 
     const payload = JSON.parse(rawBody);
-    const eventName = payload.meta.event_name;
-    const customData = payload.meta.custom_data || {};
+    const eventType = payload.type;
 
-    if (eventName === 'order_created') {
-      const businessSlug = customData.business_slug;
+    if (eventType === 'payment.succeeded') {
+      const businessSlug = payload.data?.metadata?.business_slug;
 
       if (businessSlug) {
         const { error } = await supabase
@@ -35,6 +48,7 @@ export async function POST(req: NextRequest) {
           
         if (error) {
           console.error("Failed to update business payment status:", error);
+          return NextResponse.json({ error: error.message }, { status: 500 });
         }
       }
     }
