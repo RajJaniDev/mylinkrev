@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 
 export function RateQRCodeButton({ slug }: { slug: string }) {
   const [showQR, setShowQR] = useState(false);
-  const [rateUrl, setRateUrl] = useState(`https://myrevlink.com/b/${slug}/rate`);
+  const [rateUrl, setRateUrl] = useState(`https://myrevlink.in/b/${slug}/rate`);
 
   useEffect(() => {
     // If we're on localhost, use localhost URL for easier testing, otherwise use the production URL

@@ -16,7 +16,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "MyRevLink | Dominate Local Search",
     description: "Generate 5-star Google reviews in one tap using our AI magic. Perfect for local businesses looking to boost their local SEO.",
-    url: "https://myrevlink.com",
+    url: "https://myrevlink.in",
     siteName: "MyRevLink",
     locale: "en_US",
     type: "website",

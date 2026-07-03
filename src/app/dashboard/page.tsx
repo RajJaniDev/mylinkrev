@@ -10,7 +10,10 @@ import { UserButton } from "@clerk/nextjs";
 import { PrintButton } from "@/components/PrintButton";
 import { RateQRCodeButton } from "@/components/RateQRCodeButton";
 import { ShowcaseVideosEditor } from "@/components/ShowcaseVideosEditor";
+import { ShowcaseAppsEditor } from "@/components/ShowcaseAppsEditor";
+import { ShowcaseProductsEditor } from "@/components/ShowcaseProductsEditor";
 import RegisterBusinessForm from "@/components/RegisterBusinessForm";
+import { ProfilePreviewFrame } from "@/components/ProfilePreviewFrame";
 import { cookies, headers } from "next/headers";
 
 export default async function Dashboard(
@@ -116,10 +119,14 @@ export default async function Dashboard(
       phone: formData.get("phone") as string,
       booking_url: formData.get("booking_url") as string,
       always_positive: formData.get("always_positive") === "on",
+      hide_google_rate: formData.get("hide_google_rate") === "on",
+      hide_showcase: formData.get("hide_showcase") === "on",
       profile_photo: base64Photo,
       theme_primary: formData.get("theme_primary") as string,
       theme_secondary: formData.get("theme_secondary") as string,
       showcase_videos: JSON.parse(formData.get("showcase_videos") as string || '[]'),
+      showcase_apps: JSON.parse(formData.get("showcase_apps") as string || '{}'),
+      showcase_products: JSON.parse(formData.get("showcase_products") as string || '[]'),
     };
 
     // Since we disabled RLS for now, we just update where user_id matches
@@ -146,176 +153,247 @@ export default async function Dashboard(
   } catch (e) {}
 
   return (
-    <main className="container flex-col animate-fade-in" style={{ padding: '4rem 1.5rem', maxWidth: '800px' }}>
-      <div className="glass-card">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-          <h1 style={{ fontSize: '2.5rem', margin: 0 }}>Dashboard</h1>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', background: 'rgba(255,255,255,0.05)', padding: '0.5rem 0.5rem 0.5rem 1rem', borderRadius: '2rem', border: '1px solid var(--border)' }}>
-            <span style={{ fontSize: '0.875rem', color: 'var(--muted)', fontWeight: 500 }}>Settings & Logout</span>
-            <UserButton />
+    <main className="dashboard-layout-wrapper animate-fade-in">
+      <div className="dashboard-main-content">
+        <div className="glass-card">
+           <div className="dashboard-header">
+            <h1 className="dashboard-title">Dashboard</h1>
+            <div className="dashboard-settings-btn">
+              <span className="hide-on-mobile" style={{ fontSize: '0.875rem', fontWeight: 500 }}>Settings & Logout</span>
+              <UserButton />
+            </div>
           </div>
-        </div>
-        
-        {searchParams.success && (
-          <div style={{ padding: '1rem', background: 'rgba(16, 185, 129, 0.2)', color: '#10b981', borderRadius: '0.5rem', marginBottom: '2rem' }}>
-            {searchParams.success === 'updated' 
-              ? 'Business details updated successfully!' 
-              : 'Payment successful! Your account is now active.'}
-          </div>
-        )}
-        
-        {searchParams.error && (
-          <div style={{ padding: '1rem', background: 'rgba(239, 68, 68, 0.2)', color: '#ef4444', borderRadius: '0.5rem', marginBottom: '2rem' }}>
-            {searchParams.error === 'SlugTaken' ? 'Error: Could not create business. Make sure you have created the Supabase tables, and that your slug is unique.' : searchParams.error}
-          </div>
-        )}
+          
+          {searchParams.success && (
+            <div style={{ padding: '1rem', background: 'rgba(16, 185, 129, 0.2)', color: '#10b981', borderRadius: '0.5rem', marginBottom: '2rem' }}>
+              {searchParams.success === 'updated' 
+                ? 'Business details updated successfully!' 
+                : 'Payment successful! Your account is now active.'}
+            </div>
+          )}
+          
+          {searchParams.error && (
+            <div style={{ padding: '1rem', background: 'rgba(239, 68, 68, 0.2)', color: '#ef4444', borderRadius: '0.5rem', marginBottom: '2rem' }}>
+              {searchParams.error === 'SlugTaken' ? 'Error: Could not create business. Make sure you have created the Supabase tables, and that your slug is unique.' : searchParams.error}
+            </div>
+          )}
 
-        {!business ? (
-          <div>
-            <h2>Register Your Business</h2>
-            <p style={{ color: 'var(--muted)', marginBottom: '2rem' }}>Claim your custom link and pay the one-time {priceText} fee to unlock all features.</p>
-            <RegisterBusinessForm userId={user.id} priceText={priceText} />
-          </div>
-        ) : !hasPaid ? (
-          <div>
-            <h2>Payment Pending</h2>
-            <p>Your payment is pending. Please complete the payment to access your dashboard.</p>
-            <form action="/api/checkout" method="POST">
-               <input type="hidden" name="userId" value={user.id} />
-               <input type="hidden" name="slug" value={business.slug} />
-               <Button type="submit" variant="primary">Pay {priceText} Now</Button>
-            </form>
-          </div>
-        ) : (
-          <div>
-             <h2 style={{ marginBottom: '1rem' }}>Welcome back, {business.name}!</h2>
-             <p>Your custom link: <strong><a href={`/b/${business.slug}`} target="_blank" style={{ color: 'var(--primary)', textDecoration: 'underline' }}>{`myrevlink.com/b/${business.slug}`}</a></strong></p>
-             
-             {/* QR Code Poster */}
-             {business.google_review_url ? (
-               <div style={{ marginTop: '2rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 0.5rem' }}>
-                    <h3 style={{ margin: 0, fontSize: '1.25rem' }}>Printable QR Poster</h3>
-                    <PrintButton />
-                  </div>
-                  
-                  {/* Printable Area */}
-                  <div id="printable-poster" style={{ 
-                    background: 'white', padding: '3rem 2rem', borderRadius: '1rem', 
-                    textAlign: 'center', color: '#000', boxShadow: '0 10px 25px rgba(0,0,0,0.05)',
-                    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1.5rem',
-                    border: '1px solid var(--border)'
-                  }}>
-                     {socials.profile_photo && (
-                       <img src={socials.profile_photo} alt="Profile" style={{ width: '80px', height: '80px', borderRadius: '50%', objectFit: 'cover', border: '2px solid #f3f4f6' }} />
-                     )}
-                     <div>
-                       <h2 style={{ fontSize: '2rem', margin: 0, fontWeight: 'bold' }}>{business.name}</h2>
-                       <p style={{ fontSize: '1.125rem', color: '#4b5563', margin: '0.5rem 0 0 0' }}>Scan the QR code to leave us a review!</p>
-                     </div>
-                     
-                     <div style={{ padding: '1rem', background: 'white', border: '2px solid #e5e7eb', borderRadius: '1rem', marginTop: '0.5rem' }}>
-                       <img 
-                         src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(`https://myrevlink.com/b/${business.slug}/rate`)}`} 
-                         alt="Rate Us QR Code" 
-                         style={{ width: '220px', height: '220px', display: 'block' }} 
-                       />
-                     </div>
-
-                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '1.5rem', color: '#6b7280', fontSize: '0.875rem', fontWeight: 500 }}>
-                       Powered by <strong style={{ color: '#000' }}>MyRevLink</strong>
-                     </div>
-                  </div>
-               </div>
-             ) : (
-               <div style={{ marginTop: '2rem', padding: '1.5rem', background: 'rgba(59, 130, 246, 0.05)', border: '1px dashed var(--primary)', borderRadius: '1rem', textAlign: 'center' }}>
-                 <p style={{ margin: 0, color: 'var(--secondary-foreground)', fontSize: '0.95rem' }}>
-                   ℹ️ <strong>Set your Google Review URL below</strong> to unlock the Printable QR Poster and "Rate us on Google" features.
-                 </p>
-               </div>
-             )}
-
-             <form action={updateBusinessDetails} style={{ marginTop: '2rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-               <h3 style={{ marginBottom: '1rem', borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem' }}>Edit Details</h3>
+          {!business ? (
+            <div>
+              <h2>Register Your Business</h2>
+              <p style={{ color: 'var(--muted)', marginBottom: '2rem' }}>Claim your custom link and pay the one-time {priceText} fee to unlock all features.</p>
+              <RegisterBusinessForm userId={user.id} priceText={priceText} />
+            </div>
+          ) : !hasPaid ? (
+            <div>
+              <h2>Payment Pending</h2>
+              <p>Your payment is pending. Please complete the payment to access your dashboard.</p>
+              <form action="/api/checkout" method="POST">
+                 <input type="hidden" name="userId" value={user.id} />
+                 <input type="hidden" name="slug" value={business.slug} />
+                 <Button type="submit" variant="primary">Pay {priceText} Now</Button>
+              </form>
+            </div>
+          ) : (
+            <div>
+               <h2 style={{ marginBottom: '1rem' }}>Welcome back, {business.name}!</h2>
+               <p style={{ wordBreak: 'break-all', marginBottom: '1rem' }}>Your custom link: <strong><a href={`/b/${business.slug}`} target="_blank" style={{ color: 'var(--primary)', textDecoration: 'underline' }}>{`myrevlink.in/b/${business.slug}`}</a></strong></p>
                
-               <div className="input-group">
-                 <label className="input-label">Profile Photo</label>
-                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                   {socials.profile_photo && (
-                     <img src={socials.profile_photo} alt="Profile" style={{ width: '50px', height: '50px', borderRadius: '50%', objectFit: 'cover' }} />
-                   )}
-                   <input type="file" name="profile_photo" accept="image/*" className="input-field" style={{ flex: 1 }} />
+               {/* Mobile live preview hint */}
+               <div className="mobile-preview-hint">
+                 💻 <strong>Tip:</strong> Log in on a desktop computer to view a live, real-time mobile mockup preview of your profile page!
+               </div>
+               
+               {/* QR Code Poster */}
+               {business.google_review_url ? (
+                 <div style={{ marginTop: '2rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 0.5rem' }}>
+                      <h3 style={{ margin: 0, fontSize: '1.25rem' }}>Printable QR Poster</h3>
+                      <PrintButton />
+                    </div>
+                    
+                    {/* Printable Area */}
+                    <div id="printable-poster" className="printable-poster-card">
+                       {socials.profile_photo && (
+                         <img src={socials.profile_photo} alt="Profile" style={{ width: '80px', height: '80px', borderRadius: '50%', objectFit: 'cover', border: '2px solid #f3f4f6' }} />
+                       )}
+                       <div>
+                         <h2 style={{ fontSize: '2rem', margin: 0, fontWeight: 'bold' }}>{business.name}</h2>
+                         <p style={{ fontSize: '1.125rem', color: '#4b5563', margin: '0.5rem 0 0 0' }}>Scan the QR code to leave us a review!</p>
+                       </div>
+                       
+                       <div style={{ padding: '1rem', background: 'white', border: '2px solid #e5e7eb', borderRadius: '1rem', marginTop: '0.5rem', maxWidth: '100%' }}>
+                         <img 
+                           src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(`https://myrevlink.in/b/${business.slug}/rate`)}`} 
+                           alt="QR Code" 
+                           style={{ display: 'block', margin: '0 auto', maxWidth: '100%', height: 'auto' }}
+                         />
+                       </div>
+                       
+                       <div style={{ color: '#6b7280', fontSize: '0.875rem', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                         Powered by <strong>myrevlink.in</strong>
+                       </div>
+                    </div>
                  </div>
-               </div>
-
-               <Input label="Business Name" name="name" defaultValue={business.name || ''} required placeholder="Your Business Name" />
-               <Input label="Business Description" name="description" defaultValue={business.description || ''} placeholder="Tell customers about your business" />
-               <Input label="Google Review URL" name="google_review_url" defaultValue={business.google_review_url || ''} placeholder="https://g.page/r/..." />
-               
-
-
-               {business.google_review_url && (
-                 <div style={{ marginTop: '-1rem', marginBottom: '1rem', display: 'flex', justifyContent: 'flex-start' }}>
-                   <RateQRCodeButton slug={business.slug} />
+               ) : (
+                 <div style={{ padding: '1.5rem', background: 'rgba(59, 130, 246, 0.1)', color: 'var(--foreground)', borderRadius: 'var(--radius-md)', marginTop: '2rem', border: '1px dashed var(--primary)' }}>
+                   ℹ️ Add your <strong>Google Review URL</strong> below to generate your printable QR Code poster.
                  </div>
                )}
 
-               <h4 style={{ marginTop: '1rem', color: 'var(--muted)' }}>Social Profiles & Info</h4>
-               <Input label="Facebook Page URL" name="facebook" defaultValue={socials.facebook || ''} placeholder="https://facebook.com/yourpage" />
-               <Input label="Instagram URL" name="instagram" defaultValue={socials.instagram || ''} placeholder="https://instagram.com/yourprofile" />
-               <Input label="YouTube Channel URL" name="youtube" defaultValue={socials.youtube || ''} placeholder="https://youtube.com/@yourchannel" />
-               <Input label="Twitter (X) URL" name="twitter" defaultValue={socials.twitter || ''} placeholder="https://x.com/yourprofile" />
-               <Input label="LinkedIn Profile URL" name="linkedin" defaultValue={socials.linkedin || ''} placeholder="https://linkedin.com/in/yourprofile" />
-               
-               <h4 style={{ marginTop: '1rem', color: 'var(--muted)' }}>Showcase Videos</h4>
-               <div className="input-group">
-                 <label className="input-label">YouTube or Instagram Video Links</label>
-                 <ShowcaseVideosEditor initialVideos={socials.showcase_videos || []} />
-                 <span style={{ fontSize: '0.8rem', color: 'var(--muted)', marginTop: '0.5rem', display: 'block' }}>Paste direct links to YouTube videos or Instagram Reels/Posts.</span>
-               </div>
-               
-               <h4 style={{ marginTop: '1rem', color: 'var(--muted)' }}>Location & Contact</h4>
-               <Input label="Booking Link (Calendly, etc.)" name="booking_url" defaultValue={socials.booking_url || ''} placeholder="https://calendly.com/your-name" />
-               <Input label="Physical Location" name="location" defaultValue={socials.location || ''} placeholder="123 Main St, City, Country" />
-               <Input label="Google Maps URL" name="map_url" defaultValue={socials.map_url || ''} placeholder="https://maps.app.goo.gl/..." />
-               <Input label="Contact Phone Number" name="phone" defaultValue={socials.phone || ''} placeholder="e.g. +1 234 567 8900" />
-               <Input label="WhatsApp Number" name="whatsapp" defaultValue={socials.whatsapp || ''} placeholder="e.g. 1234567890 (Country code included)" />
-               <Input label="Email Address" name="email" defaultValue={socials.email || ''} placeholder="contact@example.com" />
-               
-               <h4 style={{ marginTop: '1rem', color: 'var(--muted)' }}>AI Review Settings</h4>
-               <div className="input-group" style={{ flexDirection: 'row', alignItems: 'center', gap: '0.5rem', background: 'rgba(59, 130, 246, 0.1)', padding: '1rem', borderRadius: 'var(--radius-md)' }}>
-                 <input type="checkbox" name="always_positive" id="always_positive" defaultChecked={socials.always_positive} style={{ width: '1.2rem', height: '1.2rem' }} />
-                 <label htmlFor="always_positive" style={{ fontSize: '0.9rem', color: 'var(--foreground)' }}>
-                   <strong>Always generate positive reviews</strong> <br/>
-                   <span style={{ color: 'var(--muted)', fontSize: '0.8rem' }}>If checked, the AI will generate a 5-star positive review regardless of the rating the user selects.</span>
-                 </label>
-               </div>
-               
-               <h4 style={{ marginTop: '1.5rem', color: 'var(--muted)' }}>Brand Colors</h4>
-               <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap' }}>
-                 <div className="input-group" style={{ flex: 1, minWidth: '200px' }}>
-                   <label className="input-label">Primary Color</label>
-                   <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                     <input type="color" name="theme_primary" defaultValue={socials.theme_primary || '#3b82f6'} style={{ width: '40px', height: '40px', padding: 0, border: 'none', borderRadius: 'var(--radius-md)', cursor: 'pointer' }} />
-                     <span style={{ fontSize: '0.875rem', color: 'var(--muted)' }}>Main buttons and accents</span>
+               {/* Business Settings Form */}
+               <form action={updateBusinessDetails} style={{ marginTop: '2.5rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                 <input type="hidden" name="businessId" value={business.id} />
+                 
+                 <h3 style={{ borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem', margin: 0 }}>Edit Business Profile</h3>
+                 
+                 <Input label="Business Name" name="name" defaultValue={business.name} required />
+                 <Input label="Custom Slug (cannot be changed)" name="slug_display" defaultValue={business.slug} disabled />
+                 
+                 <div className="input-group">
+                   <label className="input-label">Description / Bio</label>
+                   <textarea 
+                     name="description" 
+                     className="input-field"
+                     defaultValue={business.description || ''} 
+                     rows={4}
+                     placeholder="Tell customers about your business..."
+                     style={{ 
+                       background: 'var(--background)',
+                       border: '1px solid var(--border)',
+                       color: 'var(--foreground)',
+                       borderRadius: 'var(--radius-md)',
+                       padding: '0.75rem',
+                       outline: 'none',
+                       fontSize: '1rem',
+                       transition: 'border-color 0.2s',
+                       resize: 'vertical'
+                     }}
+                   />
+                 </div>
+
+                 <div className="input-group">
+                   <label className="input-label">Upload Profile Photo</label>
+                   <input 
+                     type="file" 
+                     name="profile_photo" 
+                     accept="image/*"
+                     className="input-field"
+                     style={{ 
+                       background: 'var(--background)',
+                       border: '1px solid var(--border)',
+                       color: 'var(--foreground)',
+                       borderRadius: 'var(--radius-md)',
+                       padding: '0.75rem',
+                       outline: 'none',
+                       fontSize: '1rem',
+                       cursor: 'pointer'
+                     }} 
+                   />
+                   {socials.profile_photo && (
+                     <div style={{ marginTop: '0.5rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                       <img src={socials.profile_photo} alt="Current profile" style={{ width: '50px', height: '50px', borderRadius: '50%', objectFit: 'cover' }} />
+                       <span style={{ fontSize: '0.875rem', color: 'var(--muted)' }}>Current Photo</span>
+                     </div>
+                   )}
+                 </div>
+
+                 <Input label="Google Review URL" name="google_review_url" defaultValue={business.google_review_url || ''} placeholder="https://search.google.com/local/writereview?placeid=..." />
+                 
+                 <h4 style={{ marginTop: '1.5rem', color: 'var(--muted)' }}>Social Media Links</h4>
+                 <Input label="Instagram URL / Username" name="instagram" defaultValue={socials.instagram || ''} placeholder="e.g. yourbusiness" />
+                 <Input label="Facebook URL / Username" name="facebook" defaultValue={socials.facebook || ''} placeholder="e.g. yourbusiness" />
+                 <Input label="YouTube URL / Username" name="youtube" defaultValue={socials.youtube || ''} placeholder="e.g. yourchannel" />
+                 <Input label="Twitter / X Username" name="twitter" defaultValue={socials.twitter || ''} placeholder="e.g. yourbusiness" />
+                 <Input label="LinkedIn URL / Username" name="linkedin" defaultValue={socials.linkedin || ''} placeholder="e.g. company/yourbusiness" />
+
+                 <h4 style={{ marginTop: '1.5rem', color: 'var(--muted)' }}>Showcase Section</h4>
+                 <div className="input-group">
+                   <label className="input-label">Showcase Videos (YouTube/Instagram Links - max 5)</label>
+                   <ShowcaseVideosEditor initialVideos={socials.showcase_videos} />
+                 </div>
+
+                 <h4 style={{ marginTop: '1.5rem', color: 'var(--muted)' }}>App Promotion Links</h4>
+                 <div className="input-group">
+                   <label className="input-label">App Store & Play Store URLs</label>
+                   <ShowcaseAppsEditor initialApps={socials.showcase_apps} />
+                 </div>
+
+                 <h4 style={{ marginTop: '1.5rem', color: 'var(--muted)' }}>Highlighted Products</h4>
+                 <div className="input-group">
+                   <label className="input-label">Feature top products from your E-Commerce site</label>
+                   <ShowcaseProductsEditor initialProducts={socials.showcase_products} />
+                 </div>
+                 
+                 <h4 style={{ marginTop: '1rem', color: 'var(--muted)' }}>Location & Contact</h4>
+                 <Input label="Booking Link (Calendly, etc.)" name="booking_url" defaultValue={socials.booking_url || ''} placeholder="https://calendly.com/your-name" />
+                 <Input label="Physical Location" name="location" defaultValue={socials.location || ''} placeholder="123 Main St, City, Country" />
+                 <Input label="Google Maps URL" name="map_url" defaultValue={socials.map_url || ''} placeholder="https://maps.app.goo.gl/..." />
+                 <Input label="Contact Phone Number" name="phone" defaultValue={socials.phone || ''} placeholder="e.g. +1 234 567 8900" />
+                 <Input label="WhatsApp Number" name="whatsapp" defaultValue={socials.whatsapp || ''} placeholder="e.g. 1234567890 (Country code included)" />
+                 <Input label="Email Address" name="email" defaultValue={socials.email || ''} placeholder="contact@example.com" />
+                 
+                 <h4 style={{ marginTop: '1rem', color: 'var(--muted)' }}>Profile Page Settings</h4>
+                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                    <div className="input-group" style={{ flexDirection: 'row', alignItems: 'center', gap: '0.5rem', background: 'rgba(59, 130, 246, 0.1)', padding: '1rem', borderRadius: 'var(--radius-md)', marginBottom: 0 }}>
+                      <input type="checkbox" name="hide_google_rate" id="hide_google_rate" defaultChecked={socials.hide_google_rate} style={{ width: '1.2rem', height: '1.2rem' }} />
+                      <label htmlFor="hide_google_rate" style={{ fontSize: '0.9rem', color: 'var(--foreground)' }}>
+                        <strong>Hide "Rate us on Google" button</strong> <br/>
+                        <span style={{ color: 'var(--muted)', fontSize: '0.8rem' }}>If checked, the primary glowing "Rate us on Google" action button will be hidden on your profile page.</span>
+                      </label>
+                    </div>
+                    
+                    <div className="input-group" style={{ flexDirection: 'row', alignItems: 'center', gap: '0.5rem', background: 'rgba(59, 130, 246, 0.1)', padding: '1rem', borderRadius: 'var(--radius-md)', marginBottom: 0 }}>
+                      <input type="checkbox" name="hide_showcase" id="hide_showcase" defaultChecked={socials.hide_showcase} style={{ width: '1.2rem', height: '1.2rem' }} />
+                      <label htmlFor="hide_showcase" style={{ fontSize: '0.9rem', color: 'var(--foreground)' }}>
+                        <strong>Hide Showcase section</strong> <br/>
+                        <span style={{ color: 'var(--muted)', fontSize: '0.8rem' }}>If checked, the Showcase tab section (Videos, Apps, Products) will be hidden on your profile page.</span>
+                      </label>
+                    </div>
+                  </div>
+
+                 <h4 style={{ marginTop: '1rem', color: 'var(--muted)' }}>AI Review Settings</h4>
+                 <div className="input-group" style={{ flexDirection: 'row', alignItems: 'center', gap: '0.5rem', background: 'rgba(59, 130, 246, 0.1)', padding: '1rem', borderRadius: 'var(--radius-md)' }}>
+                   <input type="checkbox" name="always_positive" id="always_positive" defaultChecked={socials.always_positive} style={{ width: '1.2rem', height: '1.2rem' }} />
+                   <label htmlFor="always_positive" style={{ fontSize: '0.9rem', color: 'var(--foreground)' }}>
+                     <strong>Always generate positive reviews</strong> <br/>
+                     <span style={{ color: 'var(--muted)', fontSize: '0.8rem' }}>If checked, the AI will generate a 5-star positive review regardless of the rating the user selects.</span>
+                   </label>
+                 </div>
+                 
+                 <h4 style={{ marginTop: '1.5rem', color: 'var(--muted)' }}>Brand Colors</h4>
+                 <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap' }}>
+                   <div className="input-group" style={{ flex: 1, minWidth: '200px' }}>
+                     <label className="input-label">Primary Color</label>
+                     <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                       <input type="color" name="theme_primary" defaultValue={socials.theme_primary || '#3b82f6'} style={{ width: '40px', height: '40px', padding: 0, border: 'none', borderRadius: 'var(--radius-md)', cursor: 'pointer' }} />
+                       <span style={{ fontSize: '0.875rem', color: 'var(--muted)' }}>Main buttons and accents</span>
+                     </div>
+                   </div>
+                   <div className="input-group" style={{ flex: 1, minWidth: '200px' }}>
+                     <label className="input-label">Secondary Color (Optional)</label>
+                     <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                       <input type="color" name="theme_secondary" defaultValue={socials.theme_secondary || '#8b5cf6'} style={{ width: '40px', height: '40px', padding: 0, border: 'none', borderRadius: 'var(--radius-md)', cursor: 'pointer' }} />
+                       <span style={{ fontSize: '0.875rem', color: 'var(--muted)' }}>Used for beautiful gradients</span>
+                     </div>
                    </div>
                  </div>
-                 <div className="input-group" style={{ flex: 1, minWidth: '200px' }}>
-                   <label className="input-label">Secondary Color (Optional)</label>
-                   <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                     <input type="color" name="theme_secondary" defaultValue={socials.theme_secondary || '#8b5cf6'} style={{ width: '40px', height: '40px', padding: 0, border: 'none', borderRadius: 'var(--radius-md)', cursor: 'pointer' }} />
-                     <span style={{ fontSize: '0.875rem', color: 'var(--muted)' }}>Used for beautiful gradients</span>
-                   </div>
+                 
+                 <div style={{ marginTop: '1rem' }}>
+                   <SubmitButton>Save Changes</SubmitButton>
                  </div>
-               </div>
-               
-               <div style={{ marginTop: '1rem' }}>
-                 <SubmitButton>Save Changes</SubmitButton>
-               </div>
-             </form>
-          </div>
-        )}
+               </form>
+            </div>
+          )}
+        </div>
       </div>
+
+      {/* Desktop Preview Panel */}
+      {business && hasPaid && (
+        <div className="dashboard-preview-panel">
+          <ProfilePreviewFrame slug={business.slug} />
+        </div>
+      )}
     </main>
   );
 }

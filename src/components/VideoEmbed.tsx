@@ -1,24 +1,30 @@
 "use client";
 
-import React from 'react';
+import React, { useState } from 'react';
 
 export function VideoEmbed({ url }: { url: string }) {
+  const [isPlaying, setIsPlaying] = useState(false);
   let embedUrl = "";
+  let youtubeVideoId = "";
+  let isYouTube = false;
 
   try {
     const parsedUrl = new URL(url);
     if (parsedUrl.hostname.includes("youtube.com") || parsedUrl.hostname.includes("youtu.be")) {
-      let videoId = "";
+      isYouTube = true;
       if (parsedUrl.hostname.includes("youtu.be")) {
-        videoId = parsedUrl.pathname.slice(1);
+        youtubeVideoId = parsedUrl.pathname.slice(1).split(/[?#]/)[0];
+      } else if (parsedUrl.pathname.includes("/shorts/")) {
+        youtubeVideoId = parsedUrl.pathname.split("/shorts/")[1]?.split(/[?#]/)[0];
+      } else if (parsedUrl.pathname.includes("/embed/")) {
+        youtubeVideoId = parsedUrl.pathname.split("/embed/")[1]?.split(/[?#]/)[0];
       } else {
-        videoId = parsedUrl.searchParams.get("v") || "";
+        youtubeVideoId = parsedUrl.searchParams.get("v") || "";
       }
-      if (videoId) {
-        embedUrl = `https://www.youtube.com/embed/${videoId}`;
+      if (youtubeVideoId) {
+        embedUrl = `https://www.youtube.com/embed/${youtubeVideoId}?autoplay=1`;
       }
     } else if (parsedUrl.hostname.includes("instagram.com")) {
-      // Ensure the URL ends with /embed
       const pathname = parsedUrl.pathname.replace(/\/$/, ""); // remove trailing slash
       if (pathname.includes("/p/") || pathname.includes("/reel/")) {
         embedUrl = `https://www.instagram.com${pathname}/embed`;
@@ -28,6 +34,72 @@ export function VideoEmbed({ url }: { url: string }) {
     // Invalid URL
   }
 
+  // YouTube Lazy Loading Preview
+  if (isYouTube && youtubeVideoId) {
+    const thumbnailUrl = `https://img.youtube.com/vi/${youtubeVideoId}/hqdefault.jpg`;
+
+    if (!isPlaying) {
+      return (
+        <div 
+          onClick={() => setIsPlaying(true)}
+          className="glass-card" 
+          style={{ 
+            flex: '0 0 auto', 
+            width: '300px', 
+            height: '400px', 
+            borderRadius: '1rem', 
+            overflow: 'hidden', 
+            padding: 0, 
+            border: '1px solid var(--border)', 
+            position: 'relative',
+            cursor: 'pointer',
+            background: '#000'
+          }}
+        >
+          <img 
+            src={thumbnailUrl} 
+            alt="YouTube Video Thumbnail" 
+            style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', opacity: 0.85, transition: 'opacity 0.2s' }}
+            onMouseOver={(e) => e.currentTarget.style.opacity = '1'}
+            onMouseOut={(e) => e.currentTarget.style.opacity = '0.85'}
+          />
+          <div style={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            width: '64px',
+            height: '64px',
+            background: 'rgba(59, 130, 246, 0.9)',
+            borderRadius: '50%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            boxShadow: '0 4px 20px rgba(59, 130, 246, 0.4)',
+            transition: 'transform 0.2s',
+            pointerEvents: 'none'
+          }}>
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="white">
+              <path d="M8 5v14l11-7z"/>
+            </svg>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="glass-card" style={{ flex: '0 0 auto', width: '300px', height: '400px', borderRadius: '1rem', overflow: 'hidden', padding: 0, border: '1px solid var(--border)', background: '#000' }}>
+        <iframe 
+          src={embedUrl} 
+          style={{ width: '100%', height: '100%', border: 'none' }} 
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+          allowFullScreen
+        />
+      </div>
+    );
+  }
+
+  // Instagram or other generic Embed
   if (embedUrl) {
     return (
       <div className="glass-card" style={{ flex: '0 0 auto', width: '300px', height: '400px', borderRadius: '1rem', overflow: 'hidden', padding: 0, border: '1px solid var(--border)', background: '#000' }}>
