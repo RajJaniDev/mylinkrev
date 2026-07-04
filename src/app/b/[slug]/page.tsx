@@ -271,6 +271,57 @@ export default async function BusinessPage(props: { params: Promise<{ slug: stri
               </div>
             )}
             
+            {/* Custom Links Cards */}
+            {socials.custom_links && socials.custom_links.length > 0 && (
+              <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '0.5rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 0.25rem' }}>
+                  <h3 style={{ fontSize: '1.125rem', margin: 0, fontWeight: 600 }}>Links</h3>
+                </div>
+                {socials.custom_links.map((link: any, index: number) => (
+                  <a
+                    key={index}
+                    href={link.url.startsWith('http') ? link.url : `https://${link.url}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ width: '100%', display: 'block', textDecoration: 'none' }}
+                  >
+                    <div className="custom-link-card">
+                      {link.image ? (
+                        <img
+                          src={link.image}
+                          alt=""
+                          style={{ width: '36px', height: '36px', borderRadius: '50%', objectFit: 'cover', border: '1px solid var(--border)' }}
+                        />
+                      ) : (
+                        <div style={{
+                          width: '36px',
+                          height: '36px',
+                          borderRadius: '50%',
+                          background: 'color-mix(in srgb, var(--primary) 10%, transparent)',
+                          color: 'var(--primary)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}>
+                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="2" y1="12" x2="22" y2="12"></line>
+                            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                          </svg>
+                        </div>
+                      )}
+                      <span style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--foreground)', flex: 1 }}>
+                        {link.title}
+                      </span>
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--muted)' }}>
+                        <polyline points="9 18 15 12 9 6"></polyline>
+                      </svg>
+                    </div>
+                  </a>
+                ))}
+              </div>
+            )}
+            
             {/* Showcase Section (Tab View) */}
             {!socials.hide_showcase && (
               <ShowcaseTabs 
@@ -280,8 +331,9 @@ export default async function BusinessPage(props: { params: Promise<{ slug: stri
               />
             )}
 
-            <Link href="/" target="_blank" style={{ marginTop: '3rem', fontSize: '0.875rem', color: 'var(--muted)', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.5rem', opacity: 0.8, transition: 'opacity 0.2s' }} title="MyRevLink - Free Google Review Generator">
-               Powered by <strong style={{ color: 'var(--foreground)' }}>MyRevLink</strong> - Free Google Review Generator
+            <Link href="/" target="_blank" style={{ marginTop: '3rem', fontSize: '0.875rem', color: 'var(--muted)', textDecoration: 'none', textAlign: 'center', opacity: 0.8, transition: 'opacity 0.2s', width: '100%', display: 'block' }} title="MyRevLink - Bio link and Google Review Generator">
+               Powered by <strong style={{ color: 'var(--foreground)' }}>MyRevLink</strong>
+               <span style={{ display: 'block', fontSize: '0.75rem', marginTop: '0.25rem', color: 'var(--muted)' }}>Bio link and Google Review Generator</span>
             </Link>
          </div>
       </div>

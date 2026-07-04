@@ -12,6 +12,8 @@ import { RateQRCodeButton } from "@/components/RateQRCodeButton";
 import { ShowcaseVideosEditor } from "@/components/ShowcaseVideosEditor";
 import { ShowcaseAppsEditor } from "@/components/ShowcaseAppsEditor";
 import { ShowcaseProductsEditor } from "@/components/ShowcaseProductsEditor";
+import { CustomLinksEditor } from "@/components/CustomLinksEditor";
+import { QRPosterSection } from "@/components/QRPosterSection";
 import RegisterBusinessForm from "@/components/RegisterBusinessForm";
 import { ProfilePreviewFrame } from "@/components/ProfilePreviewFrame";
 import { cookies, headers } from "next/headers";
@@ -125,8 +127,9 @@ export default async function Dashboard(
       theme_primary: formData.get("theme_primary") as string,
       theme_secondary: formData.get("theme_secondary") as string,
       showcase_videos: JSON.parse(formData.get("showcase_videos") as string || '[]'),
-      showcase_apps: JSON.parse(formData.get("showcase_apps") as string || '{}'),
+      showcase_apps: JSON.parse(formData.get("showcase_apps") as string || '[]'),
       showcase_products: JSON.parse(formData.get("showcase_products") as string || '[]'),
+      custom_links: JSON.parse(formData.get("custom_links") as string || '[]'),
     };
 
     // Since we disabled RLS for now, we just update where user_id matches
@@ -229,35 +232,7 @@ export default async function Dashboard(
                
                {/* QR Code Poster */}
                {business.google_review_url ? (
-                 <div style={{ marginTop: '2rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 0.5rem' }}>
-                      <h3 style={{ margin: 0, fontSize: '1.25rem' }}>Printable QR Poster</h3>
-                      <PrintButton />
-                    </div>
-                    
-                    {/* Printable Area */}
-                    <div id="printable-poster" className="printable-poster-card">
-                       {socials.profile_photo && (
-                         <img src={socials.profile_photo} alt="Profile" style={{ width: '80px', height: '80px', borderRadius: '50%', objectFit: 'cover', border: '2px solid #f3f4f6' }} />
-                       )}
-                       <div>
-                         <h2 style={{ fontSize: '2rem', margin: 0, fontWeight: 'bold' }}>{business.name}</h2>
-                         <p style={{ fontSize: '1.125rem', color: '#4b5563', margin: '0.5rem 0 0 0' }}>Scan the QR code to leave us a review!</p>
-                       </div>
-                       
-                       <div style={{ padding: '1rem', background: 'white', border: '2px solid #e5e7eb', borderRadius: '1rem', marginTop: '0.5rem', maxWidth: '100%' }}>
-                         <img 
-                           src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(`https://myrevlink.in/b/${business.slug}/rate`)}`} 
-                           alt="QR Code" 
-                           style={{ display: 'block', margin: '0 auto', maxWidth: '100%', height: 'auto' }}
-                         />
-                       </div>
-                       
-                       <div style={{ color: '#6b7280', fontSize: '0.875rem', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                         Powered by <strong>myrevlink.in</strong>
-                       </div>
-                    </div>
-                 </div>
+                 <QRPosterSection business={business} socials={socials} />
                ) : (
                  <div style={{ padding: '1.5rem', background: 'rgba(59, 130, 246, 0.1)', color: 'var(--foreground)', borderRadius: 'var(--radius-md)', marginTop: '2rem', border: '1px dashed var(--primary)' }}>
                    ℹ️ Add your <strong>Google Review URL</strong> below to generate your printable QR Code poster.
@@ -346,6 +321,12 @@ export default async function Dashboard(
                  <div className="input-group">
                    <label className="input-label">Feature top products from your E-Commerce site</label>
                    <ShowcaseProductsEditor initialProducts={socials.showcase_products} />
+                 </div>
+
+                 <h4 style={{ marginTop: '1.5rem', color: 'var(--muted)' }}>Custom Links (e.g. Website, Menu, Whatsapp Group, Catalog)</h4>
+                 <div className="input-group">
+                   <label className="input-label">Add custom link cards (with custom icon/image) shown above other sections</label>
+                   <CustomLinksEditor initialLinks={socials.custom_links} />
                  </div>
                  
                  <h4 style={{ marginTop: '1rem', color: 'var(--muted)' }}>Location & Contact</h4>

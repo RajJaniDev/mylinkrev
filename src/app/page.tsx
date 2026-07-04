@@ -50,6 +50,7 @@ export default async function Home() {
           <Link href="#faq">FAQ</Link>
         </div>
         <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
+          <Link href="/demo" style={{ fontSize: '0.875rem', fontWeight: 600, color: '#2563eb' }}>View Demo</Link>
           <Link href="/sign-in" style={{ fontSize: '0.875rem', fontWeight: 600, color: '#4b5563' }}>Login</Link>
           <Link href="/sign-up">
             <Button variant="primary" style={{ padding: '0.6rem 1.25rem', fontSize: '0.875rem', borderRadius: '8px', background: '#1d4ed8' }}>Get Started</Button>
@@ -103,9 +104,9 @@ export default async function Home() {
               <Link href="/sign-up">
                 <Button variant="primary" style={{ padding: '1.25rem 2.5rem', fontSize: '1rem', borderRadius: '8px', background: '#3b82f6', border: 'none', boxShadow: '0 4px 14px rgba(59, 130, 246, 0.4)' }}>Get Started for {priceSymbol}{priceAmount}</Button>
               </Link>
-              <Link href="#how-it-works">
-                <Button variant="secondary" style={{ padding: '1.25rem 2rem', fontSize: '1rem', borderRadius: '8px', background: 'transparent', border: '2px solid #3b82f6', color: '#3b82f6', fontWeight: 600 }}>
-                  See How it Works
+              <Link href="/demo">
+                <Button variant="secondary" style={{ padding: '1.25rem 2.5rem', fontSize: '1rem', borderRadius: '8px', background: 'transparent', border: '2px solid #3b82f6', color: '#3b82f6', fontWeight: 600 }}>
+                  View Demo
                 </Button>
               </Link>
             </div>

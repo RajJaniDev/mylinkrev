@@ -620,6 +620,31 @@ p {
   }
 }
 
+.custom-link-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.85rem 1.25rem;
+  background: rgba(255, 255, 255, 0.4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  transition: all 0.2s ease-in-out;
+  cursor: pointer;
+}
+
+@media (prefers-color-scheme: dark) {
+  .custom-link-card {
+    background: rgba(31, 41, 55, 0.2);
+  }
+}
+
+.custom-link-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--primary);
+}
+
+
 
 
 

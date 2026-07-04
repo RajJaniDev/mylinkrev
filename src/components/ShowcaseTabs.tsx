@@ -20,14 +20,26 @@ interface ProductItem {
 
 interface ShowcaseTabsProps {
   videos?: string[];
-  apps?: ShowcaseApps;
+  apps?: ShowcaseApps[] | ShowcaseApps;
   products?: ProductItem[];
 }
 
-export function ShowcaseTabs({ videos = [], apps = {}, products = [] }: ShowcaseTabsProps) {
-  // Determine active tabs
+export function ShowcaseTabs({ videos = [], apps, products = [] }: ShowcaseTabsProps) {
+  // Normalize apps to an array
+  const appsList: ShowcaseApps[] = React.useMemo(() => {
+    if (!apps) return [];
+    if (Array.isArray(apps)) return apps;
+    if (typeof apps === "object" && Object.keys(apps).length > 0) {
+      // Check if it has any actual values
+      if (apps.app_name || apps.ios_link || apps.android_link || apps.web_link) {
+        return [apps];
+      }
+    }
+    return [];
+  }, [apps]);
+
   const hasVideos = videos.length > 0;
-  const hasApps = !!(apps.app_name || apps.ios_link || apps.android_link || apps.web_link);
+  const hasApps = appsList.length > 0;
   const hasProducts = products.length > 0;
 
   // Filter tabs
@@ -104,109 +116,133 @@ export function ShowcaseTabs({ videos = [], apps = {}, products = [] }: Showcase
 
         {/* Apps Tab */}
         {activeTab === "apps" && hasApps && (
-          <div className="glass-card animate-fade-in" style={{ padding: "1.5rem", background: "rgba(255,255,255,0.4)", display: "flex", flexDirection: "column", gap: "1rem" }}>
-            {apps.app_name && (
-              <h4 style={{ margin: 0, fontSize: "1.125rem", color: "var(--foreground)", fontWeight: 700 }}>
-                {apps.app_name}
-              </h4>
-            )}
-            
-            {apps.app_description && (
-              <p style={{ margin: 0, fontSize: "0.9rem", color: "var(--secondary-foreground)", lineHeight: 1.5 }}>
-                {apps.app_description}
-              </p>
-            )}
+          <div style={{
+            display: "flex", gap: "1rem", overflowX: "auto", paddingBottom: "0.75rem",
+            scrollSnapType: "x mandatory", WebkitOverflowScrolling: "touch",
+            marginLeft: "-1.5rem", marginRight: "-1.5rem", paddingLeft: "1.5rem", paddingRight: "1.5rem"
+          }} className="hide-scrollbar">
+            {appsList.map((app, index) => (
+              <div key={index} style={{ scrollSnapAlign: "start", flexShrink: 0, width: appsList.length > 1 ? "280px" : "100%" }}>
+                <div className="glass-card animate-fade-in" style={{
+                  padding: "1.25rem",
+                  background: "rgba(255,255,255,0.4)",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "0.75rem",
+                  border: "1px solid var(--border)",
+                  height: "100%",
+                  justifyContent: "space-between"
+                }}>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+                    {app.app_name && (
+                      <h4 style={{ margin: 0, fontSize: "1rem", color: "var(--foreground)", fontWeight: 700 }}>
+                        {app.app_name}
+                      </h4>
+                    )}
+                    
+                    {app.app_description && (
+                      <p style={{ margin: 0, fontSize: "0.85rem", color: "var(--secondary-foreground)", lineHeight: 1.4, display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+                        {app.app_description}
+                      </p>
+                    )}
+                  </div>
 
-            <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem", marginTop: "0.5rem" }}>
-              {apps.web_link && (
-                <a
-                  href={apps.web_link.startsWith("http") ? apps.web_link : `https://${apps.web_link}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="primary-card"
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    gap: "0.5rem",
-                    padding: "0.85rem",
-                    fontSize: "0.95rem",
-                    borderRadius: "9999px",
-                    background: "var(--primary)",
-                    color: "white",
-                    fontWeight: 600,
-                    textDecoration: "none"
-                  }}
-                >
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="12" cy="12" r="10"></circle>
-                    <line x1="2" y1="12" x2="22" y2="12"></line>
-                    <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
-                  </svg>
-                  Open Web App
-                </a>
-              )}
+                  <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", marginTop: "0.5rem" }}>
+                    {app.web_link && (
+                      <a
+                        href={app.web_link.startsWith("http") ? app.web_link : `https://${app.web_link}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="primary-card"
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          gap: "0.4rem",
+                          padding: "0.6rem",
+                          fontSize: "0.85rem",
+                          borderRadius: "9999px",
+                          background: "var(--primary)",
+                          color: "white",
+                          fontWeight: 600,
+                          textDecoration: "none",
+                          textAlign: "center"
+                        }}
+                      >
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <circle cx="12" cy="12" r="10"></circle>
+                          <line x1="2" y1="12" x2="22" y2="12"></line>
+                          <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                        </svg>
+                        Open Web App
+                      </a>
+                    )}
 
-              <div style={{ display: "flex", gap: "0.75rem", width: "100%", flexWrap: "wrap" }}>
-                {apps.ios_link && (
-                  <a
-                    href={apps.ios_link}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{
-                      flex: 1,
-                      minWidth: "140px",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      gap: "0.5rem",
-                      padding: "0.75rem 1rem",
-                      borderRadius: "9999px",
-                      background: "#000",
-                      color: "#fff",
-                      fontSize: "0.85rem",
-                      fontWeight: 600,
-                      textDecoration: "none",
-                      border: "1px solid rgba(255,255,255,0.1)"
-                    }}
-                  >
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 4.17c.66-.81 1.11-1.93.99-3.06-1 .04-2.21.67-2.93 1.49-.62.69-1.16 1.84-1.01 2.96 1.12.09 2.27-.57 2.95-1.39z"/>
-                    </svg>
-                    App Store
-                  </a>
-                )}
+                    <div style={{ display: "flex", gap: "0.5rem", width: "100%", flexWrap: "wrap" }}>
+                      {app.ios_link && (
+                        <a
+                          href={app.ios_link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{
+                            flex: 1,
+                            minWidth: "100px",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            gap: "0.3rem",
+                            padding: "0.5rem 0.75rem",
+                            borderRadius: "9999px",
+                            background: "#000",
+                            color: "#fff",
+                            fontSize: "0.75rem",
+                            fontWeight: 600,
+                            textDecoration: "none",
+                            border: "1px solid rgba(255,255,255,0.1)",
+                            textAlign: "center"
+                          }}
+                        >
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 4.17c.66-.81 1.11-1.93.99-3.06-1 .04-2.21.67-2.93 1.49-.62.69-1.16 1.84-1.01 2.96 1.12.09 2.27-.57 2.95-1.39z"/>
+                          </svg>
+                          App Store
+                        </a>
+                      )}
 
-                {apps.android_link && (
-                  <a
-                    href={apps.android_link}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{
-                      flex: 1,
-                      minWidth: "140px",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      gap: "0.5rem",
-                      padding: "0.75rem 1rem",
-                      borderRadius: "9999px",
-                      background: "#000",
-                      color: "#fff",
-                      fontSize: "0.85rem",
-                      fontWeight: 600,
-                      textDecoration: "none",
-                      border: "1px solid rgba(255,255,255,0.1)"
-                    }}
-                  >
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M5 3.229c-.224.226-.38.583-.38 1.052v15.438c0 .47.156.827.38 1.053l.07.07L14.66 12 5.07 2.37l-.07.07zM17.82 8.84l-3.16 3.16 3.16 3.16.07-.04 3.73-2.12c1.06-.6 1.06-1.58 0-2.19l-3.73-2.12-.07.04zM14.66 12L5.07 22.21c.313.33.82.376 1.398.048l11.352-6.444L14.66 12zM6.468 1.74l11.352 6.444L14.66 12 6.468 1.74z"/>
-                    </svg>
-                    Google Play
-                  </a>
-                )}
+                      {app.android_link && (
+                        <a
+                          href={app.android_link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{
+                            flex: 1,
+                            minWidth: "100px",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            gap: "0.3rem",
+                            padding: "0.5rem 0.75rem",
+                            borderRadius: "9999px",
+                            background: "#000",
+                            color: "#fff",
+                            fontSize: "0.75rem",
+                            fontWeight: 600,
+                            textDecoration: "none",
+                            border: "1px solid rgba(255,255,255,0.1)",
+                            textAlign: "center"
+                          }}
+                        >
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M5 3.229c-.224.226-.38.583-.38 1.052v15.438c0 .47.156.827.38 1.053l.07.07L14.66 12 5.07 2.37l-.07.07zM17.82 8.84l-3.16 3.16 3.16 3.16.07-.04 3.73-2.12c1.06-.6 1.06-1.58 0-2.19l-3.73-2.12-.07.04zM14.66 12L5.07 22.21c.313.33.82.376 1.398.048l11.352-6.444L14.66 12zM6.468 1.74l11.352 6.444L14.66 12 6.468 1.74z"/>
+                          </svg>
+                          Google Play
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                </div>
               </div>
-            </div>
+            ))}
           </div>
         )}
 
