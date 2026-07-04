@@ -167,6 +167,37 @@ export default async function Home() {
         </div>
       </div>
 
+      {/* DEMO VIDEO SECTION */}
+      <section style={{ padding: '6rem 1.5rem', background: '#ffffff', borderBottom: '1px solid #f1f5f9' }}>
+        <div className="container" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2rem' }}>
+          <div style={{ textAlign: 'center', marginBottom: '1rem' }}>
+            <h2 style={{ fontSize: '2.5rem', marginBottom: '1rem', color: '#0f172a', fontWeight: 800 }}>See How It Works</h2>
+            <p style={{ color: '#475569', fontSize: '1.125rem', maxWidth: '650px', margin: '0 auto' }}>Watch this quick video to see a walkthrough of our dashboard and how to get started in minutes.</p>
+          </div>
+
+          <div style={{ 
+            width: '100%', 
+            maxWidth: '800px', 
+            aspectRatio: '16/9', 
+            borderRadius: '24px', 
+            overflow: 'hidden', 
+            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.15)',
+            border: '8px solid #f8fafc',
+            background: '#000'
+          }}>
+            <iframe
+              width="100%"
+              height="100%"
+              src="https://www.youtube.com/embed/XQyWw0pn85U"
+              title="MyRevLink Product Walkthrough & Demo"
+              frameBorder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              allowFullScreen
+            />
+          </div>
+        </div>
+      </section>
+
       {/* FEATURES SECTION */}
       <section id="features" style={{ background: '#f8fafc', padding: '6rem 0' }}>
         <div className="container">

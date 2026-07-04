@@ -60,8 +60,8 @@ export default function RootLayout({
 
   return (
     <ClerkProvider>
-      <html lang="en" className={`${inter.variable}`}>
-        <body>
+      <html lang="en" className={`${inter.variable}`} suppressHydrationWarning>
+        <body suppressHydrationWarning>
           {/* Global Product Schema */}
           <script
             type="application/ld+json"
