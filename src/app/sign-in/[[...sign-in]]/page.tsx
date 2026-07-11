@@ -1,4 +1,10 @@
 import { SignIn } from "@clerk/nextjs";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Sign In | MyRevLink",
+  description: "Sign in to your MyRevLink account and access your reputation management dashboard.",
+};
 
 export default function Page() {
   return (
