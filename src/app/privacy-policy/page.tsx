@@ -1,5 +1,11 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Privacy Policy | MyRevLink",
+  description: "Read our privacy policy to understand how we collect, use, and safeguard your data.",
+};
 
 export default function PrivacyPolicy() {
   return (

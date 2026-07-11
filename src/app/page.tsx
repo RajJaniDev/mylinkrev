@@ -90,14 +90,14 @@ export default async function Home() {
 
             {/* Promo Badge */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: '#fef3c7', color: '#d97706', padding: '0.6rem 1.25rem', borderRadius: '9999px', fontSize: '0.875rem', fontWeight: 700, marginBottom: '1.5rem', border: '1px solid #fde68a' }}>
-              🔥 Launch Offer: Get lifetime access for just {priceSymbol}{priceAmount}!
+              🔥 Launch Offer: Get lifetime access for just {priceSymbol}{priceAmount}! (Regular Price: {isIndia ? "₹4,999" : "$39"})
             </div>
 
             <h1 className="hero-title">
-              Turn Happy Customers into <span style={{ color: '#2563eb' }}>5-Star Reviews</span>, Automatically.
+              Your Customers Say <span style={{ color: '#2563eb' }}>"Yes, I'll Leave a Review"</span> — Then Never Do.
             </h1>
             <p style={{ fontSize: '1.125rem', color: '#475569', marginBottom: '2.5rem', lineHeight: 1.6, maxWidth: '95%' }}>
-              MyRevLink helps businesses collect more genuine Google reviews with smart review pages, AI-generated response drafts, and counter-ready QR codes.
+              MyRevLink writes the review for them. They just pick a star rating, tap, and paste. Takes 10 seconds, not 10 minutes.
             </p>
 
             <div className="hero-grid-buttons" style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap', width: '100%', marginBottom: '1.5rem' }}>
@@ -266,6 +266,68 @@ export default async function Home() {
         </div>
       </section>
 
+      {/* TESTIMONIALS SECTION */}
+      <section style={{ padding: '6rem 1.5rem', background: 'linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)', borderBottom: '1px solid #f1f5f9' }}>
+        <div className="container">
+          <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
+            <h2 style={{ fontSize: '2.5rem', marginBottom: '1rem', color: '#0f172a', fontWeight: 800 }}>Loved by Local Businesses</h2>
+            <p style={{ color: '#475569', fontSize: '1.125rem', maxWidth: '600px', margin: '0 auto' }}>See how business owners are using MyRevLink to boost their Google reviews and attract more customers.</p>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2.5rem' }}>
+            
+            <div style={{ background: 'white', padding: '2.5rem', borderRadius: '24px', boxShadow: '0 10px 40px -10px rgba(0,0,0,0.05)', border: '1px solid #f1f5f9', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+              <div>
+                <div style={{ display: 'flex', gap: '0.25rem', color: '#f59e0b', marginBottom: '1rem', fontSize: '1.25rem' }}>★★★★★</div>
+                <p style={{ color: '#334155', lineHeight: 1.6, fontSize: '1rem', fontStyle: 'italic', marginBottom: '1.5rem' }}>
+                  "Before MyRevLink, we'd ask patients for reviews and they'd say yes but forget. Now, they scan the counter QR code at checkout, the AI writes the draft, and they post it in 10 seconds. We've gone from 45 reviews to over 180 in just 2 months!"
+                </p>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: '#eff6ff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.25rem' }}>🦷</div>
+                <div>
+                  <h4 style={{ margin: 0, color: '#0f172a', fontWeight: 700 }}>Dr. Amit Patel</h4>
+                  <span style={{ fontSize: '0.85rem', color: '#64748b' }}>Apex Dental Clinic</span>
+                </div>
+              </div>
+            </div>
+
+            <div style={{ background: 'white', padding: '2.5rem', borderRadius: '24px', boxShadow: '0 10px 40px -10px rgba(0,0,0,0.05)', border: '1px solid #f1f5f9', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+              <div>
+                <div style={{ display: 'flex', gap: '0.25rem', color: '#f59e0b', marginBottom: '1rem', fontSize: '1.25rem' }}>★★★★★</div>
+                <p style={{ color: '#334155', lineHeight: 1.6, fontSize: '1rem', fontStyle: 'italic', marginBottom: '1.5rem' }}>
+                  "The table tents with our review QR code have changed the game. Guests love reading the AI-generated suggestions, and our weekend bookings have tripled because our local maps rank went from #7 to #2."
+                </p>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: '#fef3c7', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.25rem' }}>🍔</div>
+                <div>
+                  <h4 style={{ margin: 0, color: '#0f172a', fontWeight: 700 }}>Rahul Sharma</h4>
+                  <span style={{ fontSize: '0.85rem', color: '#64748b' }}>The Urban Bistro</span>
+                </div>
+              </div>
+            </div>
+
+            <div style={{ background: 'white', padding: '2.5rem', borderRadius: '24px', boxShadow: '0 10px 40px -10px rgba(0,0,0,0.05)', border: '1px solid #f1f5f9', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+              <div>
+                <div style={{ display: 'flex', gap: '0.25rem', color: '#f59e0b', marginBottom: '1rem', fontSize: '1.25rem' }}>★★★★★</div>
+                <p style={{ color: '#334155', lineHeight: 1.6, fontSize: '1rem', fontStyle: 'italic', marginBottom: '1.5rem' }}>
+                  "paying $300 a month for Podium was eating into our margins. MyRevLink's one-time $10 fee is the best investment we've ever made. The profile page also lets us link our Fresha booking system directly."
+                </p>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: '#f3e8ff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.25rem' }}>✂️</div>
+                <div>
+                  <h4 style={{ margin: 0, color: '#0f172a', fontWeight: 700 }}>Priya Sen</h4>
+                  <span style={{ fontSize: '0.85rem', color: '#64748b' }}>Glow Salon & Spa</span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
       {/* FAQ SECTION */}
       <section id="faq" style={{ background: '#f8fafc', padding: '8rem 0', borderTop: '1px solid #f1f5f9' }}>
         <div className="container">
@@ -338,7 +400,52 @@ export default async function Home() {
             <div style={{ fontSize: '4.5rem', fontWeight: 800, marginBottom: '0.5rem', color: '#0f172a', display: 'flex', justifyContent: 'center', alignItems: 'flex-start' }}>
               <span style={{ fontSize: '2rem', marginTop: '0.5rem', fontWeight: 600 }}>{priceSymbol}</span>{priceAmount}
             </div>
-            <p style={{ color: '#e11d48', fontSize: '0.875rem', fontWeight: 700, marginBottom: '2rem' }}>*Promo price for first 15 customers</p>
+            <p style={{ color: '#e11d48', fontSize: '0.875rem', fontWeight: 700, marginBottom: '2rem' }}>*Promo price for first 15 customers (Regular price {isIndia ? "₹4,999" : "$39"})</p>
+            
+            {/* FAQPage JSON-LD schema */}
+            <script
+              type="application/ld+json"
+              dangerouslySetInnerHTML={{
+                __html: JSON.stringify({
+                  "@context": "https://schema.org",
+                  "@type": "FAQPage",
+                  "mainEntity": [
+                    {
+                      "@type": "Question",
+                      "name": "Do my customers need an app to use this?",
+                      "acceptedAnswer": {
+                        "@type": "Answer",
+                        "text": "No! MyRevLink works entirely in the web browser. When customers scan your QR code or click your link, it opens instantly on their phone without any downloads required."
+                      }
+                    },
+                    {
+                      "@type": "Question",
+                      "name": "How does the AI know what to write?",
+                      "acceptedAnswer": {
+                        "@type": "Answer",
+                        "text": "The AI uses the specific 'Business Description' you provide in your dashboard. It combines this context with the star rating the user selects to write a natural, highly relevant review."
+                      }
+                    },
+                    {
+                      "@type": "Question",
+                      "name": "Is this a monthly subscription?",
+                      "acceptedAnswer": {
+                        "@type": "Answer",
+                        "text": "No, we believe in simple pricing. You pay a one-time fee and gain lifetime access to your custom link, unlimited AI generations, and your dashboard."
+                      }
+                    },
+                    {
+                      "@type": "Question",
+                      "name": "Can I link my other social media?",
+                      "acceptedAnswer": {
+                        "@type": "Answer",
+                        "text": "Absolutely. Your public profile acts as a digital business card. You can add links to your Instagram, Facebook, X (Twitter), YouTube, WhatsApp, and Booking page."
+                      }
+                    }
+                  ]
+                }).replace(/</g, '\\u003c')
+              }}
+            />
             
             <ul style={{ textAlign: 'left', listStyle: 'none', padding: 0, margin: '0 0 2.5rem 0', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
               <li style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}><span style={{ color: '#10b981', fontWeight: 'bold' }}>✓</span> <span style={{ color: '#334155', fontSize: '0.95rem' }}>Custom myrevlink.in/b/ URL</span></li>

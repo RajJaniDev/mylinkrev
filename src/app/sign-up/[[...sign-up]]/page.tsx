@@ -1,4 +1,10 @@
 import { SignUp } from "@clerk/nextjs";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Sign Up | MyRevLink",
+  description: "Create your MyRevLink account and start automating your local Google Reviews today.",
+};
 
 export default function Page() {
   return (

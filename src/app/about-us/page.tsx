@@ -1,5 +1,11 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "About Us | MyRevLink",
+  description: "Learn more about MyRevLink and our mission to help local businesses automate their Google Reviews and grow their local search visibility.",
+};
 
 export default function AboutUs() {
   return (

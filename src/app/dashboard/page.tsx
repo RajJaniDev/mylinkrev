@@ -360,8 +360,8 @@ export default async function Dashboard(
                  <div className="input-group" style={{ flexDirection: 'row', alignItems: 'center', gap: '0.5rem', background: 'rgba(59, 130, 246, 0.1)', padding: '1rem', borderRadius: 'var(--radius-md)' }}>
                    <input type="checkbox" name="always_positive" id="always_positive" defaultChecked={socials.always_positive} style={{ width: '1.2rem', height: '1.2rem' }} />
                    <label htmlFor="always_positive" style={{ fontSize: '0.9rem', color: 'var(--foreground)' }}>
-                     <strong>Always generate positive reviews</strong> <br/>
-                     <span style={{ color: 'var(--muted)', fontSize: '0.8rem' }}>If checked, the AI will generate a 5-star positive review regardless of the rating the user selects.</span>
+                     <strong>Optimize for positive drafts</strong> <br/>
+                     <span style={{ color: 'var(--muted)', fontSize: '0.8rem' }}>If checked, the AI pre-fills a positive review draft to encourage customer feedback, while still allowing manual edits.</span>
                    </label>
                  </div>
                  

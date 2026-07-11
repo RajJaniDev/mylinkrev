@@ -1,5 +1,11 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Terms & Conditions | MyRevLink",
+  description: "Read the terms and conditions governing your use of MyRevLink.",
+};
 
 export default function TermsAndConditions() {
   return (

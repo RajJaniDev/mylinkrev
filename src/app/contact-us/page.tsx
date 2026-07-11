@@ -1,5 +1,11 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Contact Us | MyRevLink",
+  description: "Have questions or need support? Contact the MyRevLink team today. We're here to help your local business succeed.",
+};
 
 export default function ContactUs() {
   return (
