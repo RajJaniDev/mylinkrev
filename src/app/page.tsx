@@ -46,6 +46,25 @@ export default async function Home() {
         <div style={{ display: 'flex', gap: '2rem', alignItems: 'center', fontSize: '0.875rem', fontWeight: 600, color: '#4b5563' }} className="hidden sm:flex">
           <Link href="#features">Features</Link>
           <Link href="#how-it-works">How it Works</Link>
+          
+          {/* Tools Dropdown */}
+          <div className="nav-dropdown-trigger" style={{ cursor: 'pointer', padding: '0.5rem 0' }}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+              Tools
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </span>
+            <div className="nav-dropdown-menu">
+              <Link href="/tools/google-review-qr" className="nav-dropdown-item" style={{ borderBottom: '1px solid var(--border)' }}>
+                <div style={{ fontWeight: 700, fontSize: '0.875rem', color: 'var(--foreground)' }}>Generate AI Google Review QR</div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--muted)', marginTop: '0.15rem', fontWeight: 400 }}>Printable A4 QR codes for just $5</div>
+              </Link>
+              <Link href="/tools/digital-business-card" className="nav-dropdown-item">
+                <div style={{ fontWeight: 700, fontSize: '0.875rem', color: 'var(--foreground)' }}>Digital Business Card</div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--muted)', marginTop: '0.15rem', fontWeight: 400 }}>Create & download cards for free</div>
+              </Link>
+            </div>
+          </div>
+
           <Link href="#pricing">Pricing</Link>
           <Link href="#faq">FAQ</Link>
         </div>
@@ -232,6 +251,53 @@ export default async function Home() {
               <p style={{ color: '#475569', lineHeight: 1.6, fontSize: '0.95rem' }}>Automatically generate a scannable QR code for your counter. Customers scan, tap, and post their review before they even leave your store.</p>
             </article>
 
+          </div>
+        </div>
+      </section>
+
+      {/* TOOLS SECTION */}
+      <section id="tools" style={{ padding: '6rem 1.5rem', background: '#ffffff', borderBottom: '1px solid #f1f5f9' }}>
+        <div className="container">
+          <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
+            <span style={{ fontSize: '0.875rem', fontWeight: 700, color: '#3b82f6', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Free Business Utilities</span>
+            <h2 style={{ fontSize: '2.5rem', marginBottom: '1rem', color: '#0f172a', fontWeight: 800, marginTop: '0.5rem' }}>Free Growth Tools</h2>
+            <p style={{ color: '#475569', fontSize: '1.125rem', maxWidth: '700px', margin: '0 auto' }}>
+              Boost your local search visibility and counter-top presence with our specialized growth utilities. No login required.
+            </p>
+          </div>
+          
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '2rem', maxWidth: '1000px', margin: '0 auto' }}>
+            {/* Tool Card 1 */}
+            <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', padding: '2.5rem', borderRadius: '24px', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'space-between', boxShadow: '0 10px 30px -15px rgba(0,0,0,0.05)' }}>
+              <div style={{ width: '100%' }}>
+                <div style={{ width: '48px', height: '48px', background: '#eff6ff', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1.5rem', overflow: 'hidden', padding: '8px' }}>
+                  <Image src="/assets/phone_qr_code.png" alt="QR Code Icon" width={32} height={32} style={{ objectFit: 'contain' }} />
+                </div>
+                <h3 style={{ fontSize: '1.5rem', marginBottom: '1rem', color: '#0f172a', fontWeight: 800 }}>AI Google Review QR Generator</h3>
+                <p style={{ color: '#475569', lineHeight: 1.6, fontSize: '0.95rem', marginBottom: '1.5rem' }}>
+                  Design a completely custom Google Review QR poster. Input your business name, pick custom branding colors, and generate a print-ready A4 poster template for your storefront or checkout counter.
+                </p>
+              </div>
+              <Link href="/tools/google-review-qr" style={{ width: '100%' }}>
+                <Button variant="primary" style={{ width: '100%', padding: '0.8rem', borderRadius: '12px', background: '#3b82f6', border: 'none', fontWeight: 700 }}>Open Free Generator &rarr;</Button>
+              </Link>
+            </div>
+
+            {/* Tool Card 2 */}
+            <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', padding: '2.5rem', borderRadius: '24px', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'space-between', boxShadow: '0 10px 30px -15px rgba(0,0,0,0.05)' }}>
+              <div style={{ width: '100%' }}>
+                <div style={{ width: '48px', height: '48px', background: '#eff6ff', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1.5rem', overflow: 'hidden', padding: '8px' }}>
+                  <Image src="/assets/business_card.png" alt="Business Card Icon" width={32} height={32} style={{ objectFit: 'contain' }} />
+                </div>
+                <h3 style={{ fontSize: '1.5rem', marginBottom: '1rem', color: '#0f172a', fontWeight: 800 }}>Digital Business Card</h3>
+                <p style={{ color: '#475569', lineHeight: 1.6, fontSize: '0.95rem', marginBottom: '1.5rem' }}>
+                  Create a modern digital business card. Pick from 5 professional templates (Classic, Creator, Elegant, Minimalist, Neon), fill in your contact information and social handles, and download/share for free.
+                </p>
+              </div>
+              <Link href="/tools/digital-business-card" style={{ width: '100%' }}>
+                <Button variant="primary" style={{ width: '100%', padding: '0.8rem', borderRadius: '12px', background: '#3b82f6', border: 'none', fontWeight: 700 }}>Open Free Creator &rarr;</Button>
+              </Link>
+            </div>
           </div>
         </div>
       </section>
