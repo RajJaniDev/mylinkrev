@@ -6,20 +6,40 @@ export async function POST(req: NextRequest) {
   let businessName = "";
   let stars = 0;
   let businessDescription = "";
+  let slug = "";
 
   try {
     const body = await req.json();
     businessName = body.businessName;
     stars = body.stars;
     businessDescription = body.businessDescription;
-
-    const groq = new Groq({
-      apiKey: process.env.GROQ_API_KEY || 'dummy_key',
-    });
+    slug = body.slug;
 
     if (!businessName || !stars) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
+
+    let businessData: any = null;
+    if (slug) {
+      const { data } = await supabase
+        .from("businesses")
+        .select("*")
+        .eq("slug", slug)
+        .single();
+      businessData = data;
+    }
+
+    if (businessData && businessData.payment_status !== "completed") {
+      const socials = businessData.social_links || {};
+      const credits = socials.credits !== undefined ? Number(socials.credits) : 7;
+      if (credits <= 0) {
+        return NextResponse.json({ error: "This business has run out of free AI review credits. Please ask the owner to upgrade to the Pro plan!" }, { status: 403 });
+      }
+    }
+
+    const groq = new Groq({
+      apiKey: process.env.GROQ_API_KEY || 'dummy_key',
+    });
 
     const prompt = `Write a short, SEO-friendly, realistic Google Review (2-3 sentences) for a business named "${businessName}". 
 The customer gave them a ${stars} out of 5 stars rating.
@@ -41,6 +61,20 @@ CRITICAL INSTRUCTIONS:
     let generatedReview = chatCompletion.choices[0]?.message?.content || "";
     // Strip leading and trailing quotes from the AI response
     generatedReview = generatedReview.trim().replace(/^["']+|["']+$/g, '');
+
+    // Decrement credit if business was found and not completed
+    if (businessData && businessData.payment_status !== "completed") {
+      const socials = businessData.social_links || {};
+      const credits = socials.credits !== undefined ? Number(socials.credits) : 7;
+      const updatedSocials = {
+        ...socials,
+        credits: Math.max(0, credits - 1)
+      };
+      await supabase
+        .from("businesses")
+        .update({ social_links: updatedSocials })
+        .eq("slug", slug);
+    }
 
     return NextResponse.json({ review: generatedReview });
   } catch (error: any) {

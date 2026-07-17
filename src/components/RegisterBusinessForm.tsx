@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/Button";
 interface RegisterBusinessFormProps {
   userId: string;
   priceText: string;
+  registerAction: (formData: FormData) => void;
 }
 
 const slugify = (text: string) => {
@@ -19,7 +20,7 @@ const slugify = (text: string) => {
     .replace(/^-+|-+$/g, ""); // trim leading/trailing hyphens
 };
 
-export default function RegisterBusinessForm({ userId, priceText }: RegisterBusinessFormProps) {
+export default function RegisterBusinessForm({ userId, priceText, registerAction }: RegisterBusinessFormProps) {
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
   const [error, setError] = useState("");
@@ -134,7 +135,7 @@ export default function RegisterBusinessForm({ userId, priceText }: RegisterBusi
   const isSubmitDisabled = !name.trim() || !slug.trim() || !!error || isChecking;
 
   return (
-    <form action="/api/checkout" method="POST" style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+    <form action={registerAction} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
       <input type="hidden" name="userId" value={userId} />
       
       <Input
@@ -187,8 +188,12 @@ export default function RegisterBusinessForm({ userId, priceText }: RegisterBusi
         )}
       </div>
 
+      <div style={{ fontSize: "0.875rem", color: "var(--muted)", marginBottom: "0.5rem" }}>
+        🎁 You will get <strong>7 free AI review credits</strong> immediately upon registration.
+      </div>
+
       <Button type="submit" variant="primary" disabled={isSubmitDisabled}>
-        {isChecking ? "Checking link..." : `Pay ${priceText} & Register`}
+        {isChecking ? "Checking link..." : "Register & Start Free"}
       </Button>
     </form>
   );

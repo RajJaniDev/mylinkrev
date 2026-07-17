@@ -37,7 +37,8 @@ export default function RateBusinessPage() {
         body: JSON.stringify({
           businessName: business.name,
           businessDescription: business.description,
-          stars: business.social_links?.always_positive ? 5 : rating
+          stars: business.social_links?.always_positive ? 5 : rating,
+          slug: slug
         })
       });
 

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ContactSection } from "@/components/ContactSection";
 import { ShowcaseTabs } from "@/components/ShowcaseTabs";
 import type { Metadata } from "next";
+import { ContactButtonWrapper } from "@/components/ContactButtonWrapper";
 
 export async function generateMetadata(
   props: { params: Promise<{ slug: string }> }
@@ -269,6 +270,17 @@ export default async function BusinessPage(props: { params: Promise<{ slug: stri
                    </div>
                  </a>
               </div>
+            )}
+
+            {/* Contact / Inquiry Button */}
+            {!socials.hide_contact_form && (business.payment_status === "active" || business.payment_status === "completed" || (Array.isArray(business.leads) ? business.leads.length : 0) < 7) && (
+              <ContactButtonWrapper
+                businessSlug={slug}
+                buttonTitle={socials.contact_button_title || "Send Inquiry"}
+                formTitle={socials.contact_form_title || "Contact Us"}
+                successMessage={socials.contact_success_message || "Thank you! We will get back to you soon."}
+                requiredFields={socials.contact_required_fields || 'email'}
+              />
             )}
             
             {/* Custom Links Cards */}
