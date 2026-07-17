@@ -37,7 +37,15 @@ export default async function DashboardLayout({
     );
   }
 
-  const leadsCount = Array.isArray(business.leads) ? business.leads.length : 0;
+  const leadStages = Array.isArray(business.lead_stages) ? business.lead_stages : ["New", "Contacted", "Accepted", "Rejected"];
+  const firstStage = leadStages[0] || "New";
+  const leads = Array.isArray(business.leads) ? business.leads : [];
+  const newLeadsCount = leads.filter((lead: any) => 
+    !lead.status || 
+    lead.status === firstStage || 
+    lead.status === "New" || 
+    lead.status === "new"
+  ).length;
 
   return (
     <main className="dashboard-layout-wrapper animate-fade-in">
@@ -83,7 +91,7 @@ export default async function DashboardLayout({
           </div>
 
           {/* Shared Top Navigation Menu */}
-          <DashboardNav leadsCount={leadsCount} />
+          <DashboardNav leadsCount={newLeadsCount} />
 
           {children}
         </div>

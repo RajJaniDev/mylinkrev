@@ -157,22 +157,25 @@ export default async function LeadsPage(
       {/* Free Plan Limit Info Banner */}
       {!hasPaid && (
         <div style={{
-          padding: '1.25rem',
-          background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.08), rgba(139, 92, 246, 0.08))',
-          border: '1px solid rgba(59, 130, 246, 0.2)',
-          borderRadius: 'var(--radius-md)',
+          padding: '0.6rem 1rem',
+          background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.05), rgba(139, 92, 246, 0.05))',
+          border: '1px solid rgba(59, 130, 246, 0.15)',
+          borderRadius: '10px',
           display: 'flex',
-          flexDirection: 'column',
-          gap: '0.25rem'
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: '0.5rem',
+          fontSize: '0.85rem'
         }}>
-          <h4 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600, color: 'var(--foreground, #1e293b)' }}>
             <span>🎁 Free Plan Limit:</span>
-            <strong style={{ color: 'var(--primary)' }}>{leadsCount} / 7</strong>
-            <span>leads collected</span>
-          </h4>
-          <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--muted)', lineHeight: 1.4 }}>
-            Under the free plan, you can collect a maximum of 7 customer leads. Once you reach this limit, the contact form on your public profile will be disabled. Upgrade to Pro for unlimited inquiries!
-          </p>
+            <strong style={{ color: 'var(--primary, #2563eb)' }}>{leadsCount} / 7</strong>
+            <span>leads collected.</span>
+          </div>
+          <span style={{ color: 'var(--muted, #64748b)' }}>
+            Upgrade to Pro for unlimited inquiries & customizations!
+          </span>
         </div>
       )}
 

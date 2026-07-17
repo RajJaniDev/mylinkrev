@@ -16,11 +16,12 @@ export function LeadsConfigForm({ socials, action }: LeadsConfigFormProps) {
     <div style={{ 
       display: "flex", 
       flexDirection: "column", 
-      gap: "1.5rem", 
-      padding: "1.5rem", 
-      background: "rgba(255, 255, 255, 0.02)", 
-      border: "1px solid var(--border)", 
-      borderRadius: "var(--radius-md)" 
+      gap: isCollapsed ? "0" : "1.25rem", 
+      padding: isCollapsed ? "0.75rem 1.25rem" : "1.25rem", 
+      background: "var(--card, #ffffff)", 
+      border: "1px solid var(--border, #e2e8f0)", 
+      borderRadius: "12px",
+      transition: "all 0.2s ease"
     }}>
       {/* Header with Collapsible Toggle Button */}
       <div 
@@ -33,7 +34,8 @@ export function LeadsConfigForm({ socials, action }: LeadsConfigFormProps) {
           userSelect: "none"
         }}
       >
-        <h3 style={{ margin: 0, fontSize: "1.25rem", fontWeight: 600 }}>
+        <h3 style={{ margin: 0, fontSize: "1rem", fontWeight: 600, color: "var(--foreground, #0f172a)", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ color: "#3b82f6" }}><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.1a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>
           Contact Form Configuration
         </h3>
         <button
@@ -41,8 +43,8 @@ export function LeadsConfigForm({ socials, action }: LeadsConfigFormProps) {
           style={{
             background: "none",
             border: "none",
-            color: "var(--muted)",
-            fontSize: "1.25rem",
+            color: "var(--muted, #64748b)",
+            fontSize: "1rem",
             cursor: "pointer",
             padding: "0.25rem",
             display: "flex",
