@@ -70,15 +70,17 @@ export async function POST(req: NextRequest) {
 
     if (payload) {
       const eventType = payload.type;
+      const isActivationEvent = ['payment.succeeded', 'subscription.created', 'subscription.activated'].includes(eventType);
+      const isDeactivationEvent = ['subscription.cancelled', 'subscription.failed'].includes(eventType);
 
-      if (eventType === 'payment.succeeded') {
-        // Try accessing both payload.data.metadata and payload.data.object.metadata to be safe
+      if (isActivationEvent || isDeactivationEvent) {
         const businessSlug = payload.data?.metadata?.business_slug || payload.data?.object?.metadata?.business_slug;
+        const targetStatus = isActivationEvent ? 'active' : 'pending';
 
         if (businessSlug) {
           const { error } = await supabase
             .from('businesses')
-            .update({ payment_status: 'completed' })
+            .update({ payment_status: targetStatus })
             .eq('slug', businessSlug);
             
           if (error) {
@@ -87,16 +89,16 @@ export async function POST(req: NextRequest) {
             await supabase.from("error_logs").insert({
               error_message: `Database update failed: ${error.message}`,
               api_route: "webhook",
-              request_data: { businessSlug, error }
+              request_data: { businessSlug, targetStatus, error }
             });
 
             return NextResponse.json({ error: error.message }, { status: 500 });
           } else {
             // Log successful database update
             await supabase.from("error_logs").insert({
-              error_message: `Successfully completed payment activation for ${businessSlug}`,
+              error_message: `Successfully updated payment status to ${targetStatus} for ${businessSlug}`,
               api_route: "webhook",
-              request_data: { businessSlug }
+              request_data: { businessSlug, targetStatus }
             });
           }
         } else {

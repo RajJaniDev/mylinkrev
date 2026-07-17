@@ -2,8 +2,8 @@
 
 import React, { useState } from 'react';
 
-export function ShowcaseVideosEditor({ initialVideos }: { initialVideos: string[] }) {
-  const [videos, setVideos] = useState<string[]>(initialVideos.length > 0 ? initialVideos : [""]);
+export function ShowcaseVideosEditor({ initialVideos = [] }: { initialVideos?: string[] }) {
+  const [videos, setVideos] = useState<string[]>(initialVideos && initialVideos.length > 0 ? initialVideos : [""]);
 
   const handleAdd = () => {
     setVideos([...videos, ""]);

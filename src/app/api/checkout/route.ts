@@ -89,7 +89,7 @@ export async function POST(req: NextRequest) {
           .eq("user_id", userId)
           .single();
           
-        if (!existing || existing.payment_status === 'completed') {
+        if (!existing || existing.payment_status === 'completed' || existing.payment_status === 'active') {
           return NextResponse.redirect(`${origin}/dashboard?error=InvalidRequest`, { status: 303 });
         }
       }

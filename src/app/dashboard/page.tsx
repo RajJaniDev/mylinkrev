@@ -6,16 +6,12 @@ import { Input } from "@/components/ui/Input";
 import { revalidatePath } from "next/cache";
 import { SubmitButton } from "@/components/SubmitButton";
 
-import { UserButton } from "@clerk/nextjs";
-import { PrintButton } from "@/components/PrintButton";
-import { RateQRCodeButton } from "@/components/RateQRCodeButton";
 import { ShowcaseVideosEditor } from "@/components/ShowcaseVideosEditor";
 import { ShowcaseAppsEditor } from "@/components/ShowcaseAppsEditor";
 import { ShowcaseProductsEditor } from "@/components/ShowcaseProductsEditor";
 import { CustomLinksEditor } from "@/components/CustomLinksEditor";
 import { QRPosterSection } from "@/components/QRPosterSection";
 import RegisterBusinessForm from "@/components/RegisterBusinessForm";
-import { ProfilePreviewFrame } from "@/components/ProfilePreviewFrame";
 import { cookies, headers } from "next/headers";
 
 export default async function Dashboard(
@@ -70,15 +66,44 @@ export default async function Dashboard(
   const priceText = isIndia ? `₹${priceInr}` : `$${priceUsd}`;
 
   // Fetch business for this user
-  // In a real app with Clerk + Supabase, we would use Supabase JWT integration. 
-  // For simplicity, we are fetching directly, assuming server-side security.
-  const { data: business, error } = await supabase
+  const { data: business } = await supabase
     .from("businesses")
     .select("*")
     .eq("user_id", user.id)
     .single();
 
-  const hasPaid = business?.payment_status === "completed";
+  const hasPaid = business?.payment_status === "completed" || business?.payment_status === "active";
+
+  // Server action to handle business registration
+  async function registerBusiness(formData: FormData) {
+    "use server";
+    const currentUserReq = await currentUser();
+    if (!currentUserReq) return;
+
+    const name = formData.get("name") as string;
+    const slug = formData.get("slug") as string;
+    if (!name || !slug) return;
+    const finalSlug = slug.toLowerCase().replace(/\s+/g, '-');
+
+    const { error } = await supabase.from("businesses").insert({
+      user_id: currentUserReq.id,
+      slug: finalSlug,
+      name,
+      payment_status: 'pending',
+      social_links: {
+        credits: 7,
+        hide_contact_form: true
+      }
+    });
+
+    if (error) {
+      console.error("Supabase insert error:", error);
+      redirect("/dashboard?error=SlugTaken");
+    }
+
+    revalidatePath("/dashboard");
+    redirect("/dashboard?success=registered");
+  }
 
   // Server action to handle the update
   async function updateBusinessDetails(formData: FormData) {
@@ -130,6 +155,11 @@ export default async function Dashboard(
       showcase_apps: JSON.parse(formData.get("showcase_apps") as string || '[]'),
       showcase_products: JSON.parse(formData.get("showcase_products") as string || '[]'),
       custom_links: JSON.parse(formData.get("custom_links") as string || '[]'),
+      credits: existingSocials.credits !== undefined ? existingSocials.credits : 7,
+      contact_form_title: existingSocials.contact_form_title !== undefined ? existingSocials.contact_form_title : "Contact Us",
+      contact_button_title: existingSocials.contact_button_title !== undefined ? existingSocials.contact_button_title : "Send Inquiry",
+      contact_success_message: existingSocials.contact_success_message !== undefined ? existingSocials.contact_success_message : "Thank you! We will get back to you soon.",
+      hide_contact_form: existingSocials.hide_contact_form !== undefined ? existingSocials.hide_contact_form : false,
     };
 
     // Since we disabled RLS for now, we just update where user_id matches
@@ -155,249 +185,248 @@ export default async function Dashboard(
     socials = business?.social_links || {};
   } catch (e) {}
 
-  return (
-    <main className="dashboard-layout-wrapper animate-fade-in">
-      <div className="dashboard-main-content">
-        <div className="glass-card">
-           <div className="dashboard-header">
-            <h1 className="dashboard-title">Dashboard</h1>
-            <div className="dashboard-settings-btn">
-              <span className="hide-on-mobile" style={{ fontSize: '0.875rem', fontWeight: 500 }}>Settings & Logout</span>
-              <UserButton />
-            </div>
-          </div>
-          
-          {searchParams.success && (
-            <div style={{ padding: '1rem', background: 'rgba(16, 185, 129, 0.2)', color: '#10b981', borderRadius: '0.5rem', marginBottom: '2rem' }}>
-              {searchParams.success === 'updated' 
-                ? 'Business details updated successfully!' 
-                : 'Payment successful! Your account is now active.'}
-            </div>
-          )}
-          
-          {searchParams.error && (
-            <div style={{ padding: '1rem', background: 'rgba(239, 68, 68, 0.2)', color: '#ef4444', borderRadius: '0.5rem', marginBottom: '2rem' }}>
-              {searchParams.error === 'SlugTaken' ? 'Error: Could not create business. Make sure you have created the Supabase tables, and that your slug is unique.' : searchParams.error}
-            </div>
-          )}
+  const credits = socials.credits !== undefined ? Number(socials.credits) : 7;
 
-          {!business ? (
-            <div>
-              <h2>Register Your Business</h2>
-              <p style={{ color: 'var(--muted)', marginBottom: '2rem' }}>Claim your custom link and pay the one-time {priceText} fee to unlock all features.</p>
-              <RegisterBusinessForm userId={user.id} priceText={priceText} />
-            </div>
-          ) : !hasPaid ? (
-            searchParams.success === "true" ? (
-              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "3rem 1rem", textAlign: "center" }}>
-                <div className="spinner" style={{ border: "4px solid rgba(255, 255, 255, 0.1)", borderTop: "4px solid var(--primary)", borderRadius: "50%", width: "40px", height: "40px", animation: "spin 1s linear infinite", marginBottom: "1.5rem" }}></div>
-                <style dangerouslySetInnerHTML={{ __html: `
-                  @keyframes spin {
-                    0% { transform: rotate(0deg); }
-                    100% { transform: rotate(360deg); }
-                  }
-                `}} />
-                <h2>Activating Your Account...</h2>
-                <p style={{ color: "var(--muted)", marginTop: "0.5rem" }}>We are processing your payment and preparing your dashboard. You will be redirected in 3 seconds...</p>
-                <script
-                  dangerouslySetInnerHTML={{
-                    __html: `
-                      setTimeout(() => {
-                        window.location.href = '/dashboard';
-                      }, 3000);
-                    `
-                  }}
-                />
-              </div>
-            ) : (
-              <div>
-                <h2>Payment Pending</h2>
-                <p>Your payment is pending. Please complete the payment to access your dashboard.</p>
-                <form action="/api/checkout" method="POST">
-                   <input type="hidden" name="userId" value={user.id} />
-                   <input type="hidden" name="slug" value={business.slug} />
-                   <Button type="submit" variant="primary">Pay {priceText} Now</Button>
-                </form>
-              </div>
-            )
-          ) : (
-            <div>
-               <h2 style={{ marginBottom: '1rem' }}>Welcome back, {business.name}!</h2>
-               <p style={{ wordBreak: 'break-all', marginBottom: '1rem' }}>Your custom link: <strong><a href={`/b/${business.slug}`} target="_blank" style={{ color: 'var(--primary)', textDecoration: 'underline' }}>{`myrevlink.in/b/${business.slug}`}</a></strong></p>
-               
-               {/* Mobile live preview hint */}
-               <div className="mobile-preview-hint">
-                 💻 <strong>Tip:</strong> Log in on a desktop computer to view a live, real-time mobile mockup preview of your profile page!
-               </div>
-               
-               {/* QR Code Poster */}
-               {business.google_review_url ? (
-                 <QRPosterSection business={business} socials={socials} />
-               ) : (
-                 <div style={{ padding: '1.5rem', background: 'rgba(59, 130, 246, 0.1)', color: 'var(--foreground)', borderRadius: 'var(--radius-md)', marginTop: '2rem', border: '1px dashed var(--primary)' }}>
-                   ℹ️ Add your <strong>Google Review URL</strong> below to generate your printable QR Code poster.
-                 </div>
-               )}
-
-               {/* Business Settings Form */}
-               <form action={updateBusinessDetails} style={{ marginTop: '2.5rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                 <input type="hidden" name="businessId" value={business.id} />
-                 
-                 <h3 style={{ borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem', margin: 0 }}>Edit Business Profile</h3>
-                 
-                 <Input label="Business Name" name="name" defaultValue={business.name} required />
-                 <Input label="Custom Slug (cannot be changed)" name="slug_display" defaultValue={business.slug} disabled />
-                 
-                 <div className="input-group">
-                   <label className="input-label">Description / Bio</label>
-                   <textarea 
-                     name="description" 
-                     className="input-field"
-                     defaultValue={business.description || ''} 
-                     rows={4}
-                     placeholder="Tell customers about your business..."
-                     style={{ 
-                       background: 'var(--background)',
-                       border: '1px solid var(--border)',
-                       color: 'var(--foreground)',
-                       borderRadius: 'var(--radius-md)',
-                       padding: '0.75rem',
-                       outline: 'none',
-                       fontSize: '1rem',
-                       transition: 'border-color 0.2s',
-                       resize: 'vertical'
-                     }}
-                   />
-                 </div>
-
-                 <div className="input-group">
-                   <label className="input-label">Upload Profile Photo</label>
-                   <input 
-                     type="file" 
-                     name="profile_photo" 
-                     accept="image/*"
-                     className="input-field"
-                     style={{ 
-                       background: 'var(--background)',
-                       border: '1px solid var(--border)',
-                       color: 'var(--foreground)',
-                       borderRadius: 'var(--radius-md)',
-                       padding: '0.75rem',
-                       outline: 'none',
-                       fontSize: '1rem',
-                       cursor: 'pointer'
-                     }} 
-                   />
-                   {socials.profile_photo && (
-                     <div style={{ marginTop: '0.5rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                       <img src={socials.profile_photo} alt="Current profile" style={{ width: '50px', height: '50px', borderRadius: '50%', objectFit: 'cover' }} />
-                       <span style={{ fontSize: '0.875rem', color: 'var(--muted)' }}>Current Photo</span>
-                     </div>
-                   )}
-                 </div>
-
-                 <Input label="Google Review URL" name="google_review_url" defaultValue={business.google_review_url || ''} placeholder="https://search.google.com/local/writereview?placeid=..." />
-                 
-                 <h4 style={{ marginTop: '1.5rem', color: 'var(--muted)' }}>Social Media Links</h4>
-                 <Input label="Instagram URL / Username" name="instagram" defaultValue={socials.instagram || ''} placeholder="e.g. yourbusiness" />
-                 <Input label="Facebook URL / Username" name="facebook" defaultValue={socials.facebook || ''} placeholder="e.g. yourbusiness" />
-                 <Input label="YouTube URL / Username" name="youtube" defaultValue={socials.youtube || ''} placeholder="e.g. yourchannel" />
-                 <Input label="Twitter / X Username" name="twitter" defaultValue={socials.twitter || ''} placeholder="e.g. yourbusiness" />
-                 <Input label="LinkedIn URL / Username" name="linkedin" defaultValue={socials.linkedin || ''} placeholder="e.g. company/yourbusiness" />
-
-                 <h4 style={{ marginTop: '1.5rem', color: 'var(--muted)' }}>Showcase Section</h4>
-                 <div className="input-group">
-                   <label className="input-label">Showcase Videos (YouTube/Instagram Links - max 5)</label>
-                   <ShowcaseVideosEditor initialVideos={socials.showcase_videos} />
-                 </div>
-
-                 <h4 style={{ marginTop: '1.5rem', color: 'var(--muted)' }}>App Promotion Links</h4>
-                 <div className="input-group">
-                   <label className="input-label">App Store & Play Store URLs</label>
-                   <ShowcaseAppsEditor initialApps={socials.showcase_apps} />
-                 </div>
-
-                 <h4 style={{ marginTop: '1.5rem', color: 'var(--muted)' }}>Highlighted Products</h4>
-                 <div className="input-group">
-                   <label className="input-label">Feature top products from your E-Commerce site</label>
-                   <ShowcaseProductsEditor initialProducts={socials.showcase_products} />
-                 </div>
-
-                 <h4 style={{ marginTop: '1.5rem', color: 'var(--muted)' }}>Custom Links (e.g. Website, Menu, Whatsapp Group, Catalog)</h4>
-                 <div className="input-group">
-                   <label className="input-label">Add custom link cards (with custom icon/image) shown above other sections</label>
-                   <CustomLinksEditor initialLinks={socials.custom_links} />
-                 </div>
-                 
-                 <h4 style={{ marginTop: '1rem', color: 'var(--muted)' }}>Location & Contact</h4>
-                 <Input label="Booking Link (Calendly, etc.)" name="booking_url" defaultValue={socials.booking_url || ''} placeholder="https://calendly.com/your-name" />
-                 <Input label="Physical Location" name="location" defaultValue={socials.location || ''} placeholder="123 Main St, City, Country" />
-                 <Input label="Google Maps URL" name="map_url" defaultValue={socials.map_url || ''} placeholder="https://maps.app.goo.gl/..." />
-                 <Input label="Contact Phone Number" name="phone" defaultValue={socials.phone || ''} placeholder="e.g. +1 234 567 8900" />
-                 <Input label="WhatsApp Number" name="whatsapp" defaultValue={socials.whatsapp || ''} placeholder="e.g. 1234567890 (Country code included)" />
-                 <Input label="Email Address" name="email" defaultValue={socials.email || ''} placeholder="contact@example.com" />
-                 
-                 <h4 style={{ marginTop: '1rem', color: 'var(--muted)' }}>Profile Page Settings</h4>
-                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                    <div className="input-group" style={{ flexDirection: 'row', alignItems: 'center', gap: '0.5rem', background: 'rgba(59, 130, 246, 0.1)', padding: '1rem', borderRadius: 'var(--radius-md)', marginBottom: 0 }}>
-                      <input type="checkbox" name="hide_google_rate" id="hide_google_rate" defaultChecked={socials.hide_google_rate} style={{ width: '1.2rem', height: '1.2rem' }} />
-                      <label htmlFor="hide_google_rate" style={{ fontSize: '0.9rem', color: 'var(--foreground)' }}>
-                        <strong>Hide "Rate us on Google" button</strong> <br/>
-                        <span style={{ color: 'var(--muted)', fontSize: '0.8rem' }}>If checked, the primary glowing "Rate us on Google" action button will be hidden on your profile page.</span>
-                      </label>
-                    </div>
-                    
-                    <div className="input-group" style={{ flexDirection: 'row', alignItems: 'center', gap: '0.5rem', background: 'rgba(59, 130, 246, 0.1)', padding: '1rem', borderRadius: 'var(--radius-md)', marginBottom: 0 }}>
-                      <input type="checkbox" name="hide_showcase" id="hide_showcase" defaultChecked={socials.hide_showcase} style={{ width: '1.2rem', height: '1.2rem' }} />
-                      <label htmlFor="hide_showcase" style={{ fontSize: '0.9rem', color: 'var(--foreground)' }}>
-                        <strong>Hide Showcase section</strong> <br/>
-                        <span style={{ color: 'var(--muted)', fontSize: '0.8rem' }}>If checked, the Showcase tab section (Videos, Apps, Products) will be hidden on your profile page.</span>
-                      </label>
-                    </div>
-                  </div>
-
-                 <h4 style={{ marginTop: '1rem', color: 'var(--muted)' }}>AI Review Settings</h4>
-                 <div className="input-group" style={{ flexDirection: 'row', alignItems: 'center', gap: '0.5rem', background: 'rgba(59, 130, 246, 0.1)', padding: '1rem', borderRadius: 'var(--radius-md)' }}>
-                   <input type="checkbox" name="always_positive" id="always_positive" defaultChecked={socials.always_positive} style={{ width: '1.2rem', height: '1.2rem' }} />
-                   <label htmlFor="always_positive" style={{ fontSize: '0.9rem', color: 'var(--foreground)' }}>
-                     <strong>Optimize for positive drafts</strong> <br/>
-                     <span style={{ color: 'var(--muted)', fontSize: '0.8rem' }}>If checked, the AI pre-fills a positive review draft to encourage customer feedback, while still allowing manual edits.</span>
-                   </label>
-                 </div>
-                 
-                 <h4 style={{ marginTop: '1.5rem', color: 'var(--muted)' }}>Brand Colors</h4>
-                 <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap' }}>
-                   <div className="input-group" style={{ flex: 1, minWidth: '200px' }}>
-                     <label className="input-label">Primary Color</label>
-                     <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                       <input type="color" name="theme_primary" defaultValue={socials.theme_primary || '#3b82f6'} style={{ width: '40px', height: '40px', padding: 0, border: 'none', borderRadius: 'var(--radius-md)', cursor: 'pointer' }} />
-                       <span style={{ fontSize: '0.875rem', color: 'var(--muted)' }}>Main buttons and accents</span>
-                     </div>
-                   </div>
-                   <div className="input-group" style={{ flex: 1, minWidth: '200px' }}>
-                     <label className="input-label">Secondary Color (Optional)</label>
-                     <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                       <input type="color" name="theme_secondary" defaultValue={socials.theme_secondary || '#8b5cf6'} style={{ width: '40px', height: '40px', padding: 0, border: 'none', borderRadius: 'var(--radius-md)', cursor: 'pointer' }} />
-                       <span style={{ fontSize: '0.875rem', color: 'var(--muted)' }}>Used for beautiful gradients</span>
-                     </div>
-                   </div>
-                 </div>
-                 
-                 <div style={{ marginTop: '1rem' }}>
-                   <SubmitButton>Save Changes</SubmitButton>
-                 </div>
-               </form>
-            </div>
-          )}
-        </div>
+  if (!business) {
+    return (
+      <div>
+        <h2>Register Your Business</h2>
+        <p style={{ color: 'var(--muted)', marginBottom: '2rem' }}>Claim your custom link and start for free.</p>
+        <RegisterBusinessForm userId={user.id} priceText={priceText} registerAction={registerBusiness} />
       </div>
+    );
+  }
 
-      {/* Desktop Preview Panel */}
-      {business && hasPaid && (
-        <div className="dashboard-preview-panel">
-          <ProfilePreviewFrame slug={business.slug} />
+  return (
+    <div>
+      {searchParams.success && (
+        <div style={{ padding: '1rem', background: 'rgba(16, 185, 129, 0.2)', color: '#10b981', borderRadius: '0.5rem', marginBottom: '2rem' }}>
+          {searchParams.success === 'updated' 
+            ? 'Business details updated successfully!' 
+            : searchParams.success === 'registered'
+            ? 'Business registered successfully! You have 7 free AI review credits.'
+            : 'Payment successful! Your account is now active.'}
         </div>
       )}
-    </main>
+      
+      {searchParams.error && (
+        <div style={{ padding: '1rem', background: 'rgba(239, 68, 68, 0.2)', color: '#ef4444', borderRadius: '0.5rem', marginBottom: '2rem' }}>
+          {searchParams.error === 'SlugTaken' ? 'Error: Could not create business. Make sure you have created the Supabase tables, and that your slug is unique.' : searchParams.error}
+        </div>
+      )}
+
+      {/* Premium Subscription / Credits Banner */}
+      {!hasPaid ? (
+        <div style={{
+          padding: '1.5rem',
+          background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(139, 92, 246, 0.1))',
+          border: '1px solid rgba(59, 130, 246, 0.2)',
+          borderRadius: 'var(--radius-md)',
+          marginBottom: '2rem',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: '1rem'
+        }}>
+          <div>
+            <h3 style={{ margin: 0, fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <span>🎁 Free Plan:</span>
+              <strong style={{ color: 'var(--primary)' }}>{credits} / 7</strong>
+              <span>AI review drafts remaining</span>
+            </h3>
+            <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.85rem', color: 'var(--muted)' }}>
+              Upgrade to the Pro Plan for unlimited AI reviews, custom themes, video showcases, and more!
+            </p>
+          </div>
+          <form action="/api/checkout" method="POST">
+            <input type="hidden" name="userId" value={user.id} />
+            <input type="hidden" name="slug" value={business.slug} />
+            <Button type="submit" variant="primary" style={{ background: 'linear-gradient(90deg, var(--primary), var(--accent))', border: 'none' }}>
+              Upgrade to Pro ({priceText})
+            </Button>
+          </form>
+        </div>
+      ) : (
+        <div style={{
+          padding: '1.25rem',
+          background: 'rgba(16, 185, 129, 0.1)',
+          border: '1px solid rgba(16, 185, 129, 0.2)',
+          borderRadius: 'var(--radius-md)',
+          marginBottom: '2rem',
+          color: '#10b981',
+          fontWeight: 500,
+          fontSize: '0.95rem'
+        }}>
+          ✨ Pro Plan Active (Unlimited AI Reviews & Premium Features Unlocked)
+        </div>
+      )}
+
+      <h2 style={{ marginBottom: '1rem' }}>Welcome back, {business.name}!</h2>
+      <p style={{ wordBreak: 'break-all', marginBottom: '1rem' }}>Your custom link: <strong><a href={`/b/${business.slug}`} target="_blank" style={{ color: 'var(--primary)', textDecoration: 'underline' }}>{`myrevlink.in/b/${business.slug}`}</a></strong></p>
+      
+      {/* Mobile live preview hint */}
+      <div className="mobile-preview-hint">
+        💻 <strong>Tip:</strong> Log in on a desktop computer to view a live, real-time mobile mockup preview of your profile page!
+      </div>
+      
+      {/* QR Code Poster */}
+      {business.google_review_url ? (
+        <QRPosterSection business={business} socials={socials} />
+      ) : (
+        <div style={{ padding: '1.5rem', background: 'rgba(59, 130, 246, 0.1)', color: 'var(--foreground)', borderRadius: 'var(--radius-md)', marginTop: '2rem', border: '1px dashed var(--primary)' }}>
+          ℹ️ Add your <strong>Google Review URL</strong> below to generate your printable QR Code poster.
+        </div>
+      )}
+
+      {/* Business Settings Form */}
+      <form action={updateBusinessDetails} style={{ marginTop: '2.5rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+        <input type="hidden" name="businessId" value={business.id} />
+        
+        <h3 style={{ borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem', margin: 0 }}>Edit Business Profile</h3>
+        
+        <Input label="Business Name" name="name" defaultValue={business.name} required />
+        <Input label="Custom Slug (cannot be changed)" name="slug_display" defaultValue={business.slug} disabled />
+        
+        <div className="input-group">
+          <label className="input-label">Description / Bio</label>
+          <textarea 
+            name="description" 
+            className="input-field"
+            defaultValue={business.description || ''} 
+            rows={4}
+            placeholder="Tell customers about your business..."
+            style={{ 
+              background: 'var(--background)',
+              border: '1px solid var(--border)',
+              color: 'var(--foreground)',
+              borderRadius: 'var(--radius-md)',
+              padding: '0.75rem',
+              outline: 'none',
+              fontSize: '1rem',
+              transition: 'border-color 0.2s',
+              resize: 'vertical'
+            }}
+          />
+        </div>
+
+        <div className="input-group">
+          <label className="input-label">Upload Profile Photo</label>
+          <input 
+            type="file" 
+            name="profile_photo" 
+            accept="image/*"
+            className="input-field"
+            style={{ 
+              background: 'var(--background)',
+              border: '1px solid var(--border)',
+              color: 'var(--foreground)',
+              borderRadius: 'var(--radius-md)',
+              padding: '0.75rem',
+              outline: 'none',
+              fontSize: '1rem',
+              cursor: 'pointer'
+            }} 
+          />
+          {socials.profile_photo && (
+            <div style={{ marginTop: '0.5rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+              <img src={socials.profile_photo} alt="Current profile" style={{ width: '50px', height: '50px', borderRadius: '50%', objectFit: 'cover' }} />
+              <span style={{ fontSize: '0.875rem', color: 'var(--muted)' }}>Current Photo</span>
+            </div>
+          )}
+        </div>
+
+        <Input label="Google Review URL" name="google_review_url" defaultValue={business.google_review_url || ''} placeholder="https://search.google.com/local/writereview?placeid=..." />
+        
+        <h4 style={{ marginTop: '1.5rem', color: 'var(--muted)' }}>Social Media Links</h4>
+        <Input label="Instagram URL / Username" name="instagram" defaultValue={socials.instagram || ''} placeholder="e.g. yourbusiness" />
+        <Input label="Facebook URL / Username" name="facebook" defaultValue={socials.facebook || ''} placeholder="e.g. yourbusiness" />
+        <Input label="YouTube URL / Username" name="youtube" defaultValue={socials.youtube || ''} placeholder="e.g. yourchannel" />
+        <Input label="Twitter / X Username" name="twitter" defaultValue={socials.twitter || ''} placeholder="e.g. yourbusiness" />
+        <Input label="LinkedIn URL / Username" name="linkedin" defaultValue={socials.linkedin || ''} placeholder="e.g. company/yourbusiness" />
+
+        <h4 style={{ marginTop: '1.5rem', color: 'var(--muted)' }}>Showcase Section</h4>
+        <div className="input-group">
+          <label className="input-label">Showcase Videos (YouTube/Instagram Links - max 5)</label>
+          <ShowcaseVideosEditor initialVideos={socials.showcase_videos || []} />
+        </div>
+
+        <h4 style={{ marginTop: '1.5rem', color: 'var(--muted)' }}>App Promotion Links</h4>
+        <div className="input-group">
+          <label className="input-label">App Store & Play Store URLs</label>
+          <ShowcaseAppsEditor initialApps={socials.showcase_apps || []} />
+        </div>
+
+        <h4 style={{ marginTop: '1.5rem', color: 'var(--muted)' }}>Highlighted Products</h4>
+        <div className="input-group">
+          <label className="input-label">Feature top products from your E-Commerce site</label>
+          <ShowcaseProductsEditor initialProducts={socials.showcase_products || []} />
+        </div>
+
+        <h4 style={{ marginTop: '1.5rem', color: 'var(--muted)' }}>Custom Links (e.g. Website, Menu, Whatsapp Group, Catalog)</h4>
+        <div className="input-group">
+          <label className="input-label">Add custom link cards (with custom icon/image) shown above other sections</label>
+          <CustomLinksEditor initialLinks={socials.custom_links || []} />
+        </div>
+        
+        <h4 style={{ marginTop: '1rem', color: 'var(--muted)' }}>Location & Contact</h4>
+        <Input label="Booking Link (Calendly, etc.)" name="booking_url" defaultValue={socials.booking_url || ''} placeholder="https://calendly.com/your-name" />
+        <Input label="Physical Location" name="location" defaultValue={socials.location || ''} placeholder="123 Main St, City, Country" />
+        <Input label="Google Maps URL" name="map_url" defaultValue={socials.map_url || ''} placeholder="https://maps.app.goo.gl/..." />
+        <Input label="Contact Phone Number" name="phone" defaultValue={socials.phone || ''} placeholder="e.g. +1 234 567 8900" />
+        <Input label="WhatsApp Number" name="whatsapp" defaultValue={socials.whatsapp || ''} placeholder="e.g. 1234567890 (Country code included)" />
+        <Input label="Email Address" name="email" defaultValue={socials.email || ''} placeholder="contact@example.com" />
+        
+        <h4 style={{ marginTop: '1rem', color: 'var(--muted)' }}>Profile Page Settings</h4>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+           <div className="input-group" style={{ flexDirection: 'row', alignItems: 'center', gap: '0.5rem', background: 'rgba(59, 130, 246, 0.1)', padding: '1rem', borderRadius: 'var(--radius-md)', marginBottom: 0 }}>
+             <input type="checkbox" name="hide_google_rate" id="hide_google_rate" defaultChecked={socials.hide_google_rate} style={{ width: '1.2rem', height: '1.2rem' }} />
+             <label htmlFor="hide_google_rate" style={{ fontSize: '0.9rem', color: 'var(--foreground)' }}>
+               <strong>Hide "Rate us on Google" button</strong> <br/>
+               <span style={{ color: 'var(--muted)', fontSize: '0.8rem' }}>If checked, the primary glowing "Rate us on Google" action button will be hidden on your profile page.</span>
+             </label>
+           </div>
+           
+           <div className="input-group" style={{ flexDirection: 'row', alignItems: 'center', gap: '0.5rem', background: 'rgba(59, 130, 246, 0.1)', padding: '1rem', borderRadius: 'var(--radius-md)', marginBottom: 0 }}>
+             <input type="checkbox" name="hide_showcase" id="hide_showcase" defaultChecked={socials.hide_showcase} style={{ width: '1.2rem', height: '1.2rem' }} />
+             <label htmlFor="hide_showcase" style={{ fontSize: '0.9rem', color: 'var(--foreground)' }}>
+               <strong>Hide Showcase section</strong> <br/>
+               <span style={{ color: 'var(--muted)', fontSize: '0.8rem' }}>If checked, the Showcase tab section (Videos, Apps, Products) will be hidden on your profile page.</span>
+             </label>
+           </div>
+         </div>
+
+        <h4 style={{ marginTop: '1rem', color: 'var(--muted)' }}>AI Review Settings</h4>
+        <div className="input-group" style={{ flexDirection: 'row', alignItems: 'center', gap: '0.5rem', background: 'rgba(59, 130, 246, 0.1)', padding: '1rem', borderRadius: 'var(--radius-md)' }}>
+          <input type="checkbox" name="always_positive" id="always_positive" defaultChecked={socials.always_positive} style={{ width: '1.2rem', height: '1.2rem' }} />
+          <label htmlFor="always_positive" style={{ fontSize: '0.9rem', color: 'var(--foreground)' }}>
+            <strong>Optimize for positive drafts</strong> <br/>
+            <span style={{ color: 'var(--muted)', fontSize: '0.8rem' }}>If checked, the AI pre-fills a positive review draft to encourage customer feedback, while still allowing manual edits.</span>
+          </label>
+        </div>
+        
+        <h4 style={{ marginTop: '1.5rem', color: 'var(--muted)' }}>Brand Colors</h4>
+        <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap' }}>
+          <div className="input-group" style={{ flex: 1, minWidth: '200px' }}>
+            <label className="input-label">Primary Color</label>
+            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+              <input type="color" name="theme_primary" defaultValue={socials.theme_primary || '#3b82f6'} style={{ width: '40px', height: '40px', padding: 0, border: 'none', borderRadius: 'var(--radius-md)', cursor: 'pointer' }} />
+              <span style={{ fontSize: '0.875rem', color: 'var(--muted)' }}>Main buttons and accents</span>
+            </div>
+          </div>
+          <div className="input-group" style={{ flex: 1, minWidth: '200px' }}>
+            <label className="input-label">Secondary Color (Optional)</label>
+            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+              <input type="color" name="theme_secondary" defaultValue={socials.theme_secondary || '#8b5cf6'} style={{ width: '40px', height: '40px', padding: 0, border: 'none', borderRadius: 'var(--radius-md)', cursor: 'pointer' }} />
+              <span style={{ fontSize: '0.875rem', color: 'var(--muted)' }}>Used for beautiful gradients</span>
+            </div>
+          </div>
+        </div>
+        
+        <div style={{ marginTop: '2rem' }}>
+          <SubmitButton>Save Changes</SubmitButton>
+        </div>
+      </form>
+    </div>
   );
 }

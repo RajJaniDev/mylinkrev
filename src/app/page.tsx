@@ -29,11 +29,12 @@ export default async function Home() {
     return acc;
   }, {}) || {};
 
-  const usdPrice = settings.price_usd_amount || "30";
-  const inrPrice = settings.price_inr_amount || "2499";
+  const usdPrice = settings.price_usd_amount || "10";
+  const inrPrice = settings.price_inr_amount || "199";
 
   const priceSymbol = isIndia ? "₹" : "$";
   const priceAmount = isIndia ? inrPrice : usdPrice;
+
   return (
     <main className="animate-fade-in" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', overflowX: 'hidden' }}>
       
@@ -77,10 +78,7 @@ export default async function Home() {
         </div>
       </header>
       
-      {/* 
-        HERO SECTION 
-        Modernized with a split-screen design matching Mockup #2
-      */}
+      {/* HERO SECTION */}
       <section style={{ position: 'relative', padding: '12rem 1.5rem 6rem 1.5rem', overflow: 'hidden', background: 'linear-gradient(135deg, #eff4ff 0%, #ffffff 100%)' }}>
         <div className="container hero-grid" style={{ position: 'relative', zIndex: 1 }}>
           
@@ -90,7 +88,6 @@ export default async function Home() {
             {/* Product Hunt Badge */}
             <div style={{ marginBottom: '1.25rem' }}>
               <a href="https://www.producthunt.com/products/myrevlink?embed=true&utm_source=badge-featured&utm_medium=badge&utm_campaign=badge-myrevlink" target="_blank" rel="noopener noreferrer">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img 
                   src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1185494&theme=light&t=1782982543541" 
                   alt="MyRevLink - Turn Happy Customers into 5-Star Reviews, Automatically | Product Hunt" 
@@ -109,7 +106,7 @@ export default async function Home() {
 
             {/* Promo Badge */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: '#fef3c7', color: '#d97706', padding: '0.6rem 1.25rem', borderRadius: '9999px', fontSize: '0.875rem', fontWeight: 700, marginBottom: '1.5rem', border: '1px solid #fde68a' }}>
-              🔥 Launch Offer: Get lifetime access for just {priceSymbol}{priceAmount}! (Regular Price: {isIndia ? "₹4,999" : "$39"})
+              🔥 Try it for free today! Get 7 review draft credits immediately upon sign up.
             </div>
 
             <h1 className="hero-title">
@@ -121,7 +118,7 @@ export default async function Home() {
 
             <div className="hero-grid-buttons" style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap', width: '100%', marginBottom: '1.5rem' }}>
               <Link href="/sign-up">
-                <Button variant="primary" style={{ padding: '1.25rem 2.5rem', fontSize: '1rem', borderRadius: '8px', background: '#3b82f6', border: 'none', boxShadow: '0 4px 14px rgba(59, 130, 246, 0.4)' }}>Get Started for {priceSymbol}{priceAmount}</Button>
+                <Button variant="primary" style={{ padding: '1.25rem 2.5rem', fontSize: '1rem', borderRadius: '8px', background: '#3b82f6', border: 'none', boxShadow: '0 4px 14px rgba(59, 130, 246, 0.4)' }}>Get Started Free</Button>
               </Link>
               <Link href="/demo">
                 <Button variant="secondary" style={{ padding: '1.25rem 2.5rem', fontSize: '1rem', borderRadius: '8px', background: 'transparent', border: '2px solid #3b82f6', color: '#3b82f6', fontWeight: 600 }}>
@@ -133,11 +130,11 @@ export default async function Home() {
             <div style={{ display: 'flex', gap: '1.5rem', color: '#475569', fontSize: '0.875rem', fontWeight: 500 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                One-time payment
+                No Credit Card Required
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                Lifetime access
+                Start for Free
               </div>
             </div>
           </div>
@@ -218,92 +215,100 @@ export default async function Home() {
       </section>
 
       {/* FEATURES SECTION */}
-      <section id="features" style={{ background: '#f8fafc', padding: '6rem 0' }}>
+      <section id="features" style={{ background: 'linear-gradient(180deg, #f8fafc 0%, #ffffff 100%)', padding: '8rem 0 4rem 0', position: 'relative' }}>
+        <style dangerouslySetInnerHTML={{ __html: `
+          .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 2.25rem;
+            width: 100%;
+            max-width: 1100px;
+            margin: 0 auto;
+          }
+          .feature-card {
+            background: #ffffff;
+            padding: 3rem 2.25rem;
+            border-radius: 28px;
+            border: 1px solid #f1f5f9;
+            box-shadow: 0 10px 30px -15px rgba(0, 0, 0, 0.04);
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+            cursor: default;
+          }
+          .feature-card:hover {
+            transform: translateY(-8px);
+            border-color: rgba(59, 130, 246, 0.3);
+            box-shadow: 0 25px 50px -12px rgba(59, 130, 246, 0.08);
+          }
+          .feature-icon-wrapper {
+            width: 52px;
+            height: 52px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 2rem;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+          }
+          .feature-card:hover .feature-icon-wrapper {
+            transform: scale(1.1) rotate(3deg);
+          }
+        `}} />
+
         <div className="container">
-          <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
-            <h2 style={{ fontSize: '2.5rem', marginBottom: '1rem', color: '#0f172a', fontWeight: 800 }}>Dominate Local Search</h2>
-            <p style={{ color: '#475569', fontSize: '1.125rem', maxWidth: '600px', margin: '0 auto' }}>Everything you need to automate your reputation management and climb the Google Maps rankings without monthly fees.</p>
+          <div style={{ textAlign: 'center', marginBottom: '5rem' }}>
+            <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#3b82f6', textTransform: 'uppercase', letterSpacing: '0.1em', display: 'block', marginBottom: '0.75rem' }}>Key Capabilities</span>
+            <h2 style={{ fontSize: '2.5rem', marginBottom: '1.25rem', color: '#0f172a', fontWeight: 800 }}>Dominate Local Search</h2>
+            <p style={{ color: '#475569', fontSize: '1.125rem', maxWidth: '600px', margin: '0 auto', lineHeight: 1.6 }}>Everything you need to automate your reputation management and climb the Google Maps rankings.</p>
           </div>
           
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2.5rem' }}>
+          <div className="features-grid">
             
-            <article style={{ background: 'white', padding: '2.5rem', borderRadius: '24px', boxShadow: '0 10px 40px -10px rgba(0,0,0,0.05)', display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-              <div style={{ width: '48px', height: '48px', background: '#eff6ff', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#2563eb', marginBottom: '1.5rem' }}>
+            {/* Feature 1 */}
+            <article className="feature-card">
+              <div className="feature-icon-wrapper" style={{ background: 'rgba(37, 99, 235, 0.08)', color: '#2563eb' }}>
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"></rect><circle cx="12" cy="5" r="2"></circle><path d="M12 7v4"></path><line x1="8" y1="16" x2="8" y2="16"></line><line x1="16" y1="16" x2="16" y2="16"></line></svg>
               </div>
-              <h3 style={{ fontSize: '1.5rem', marginBottom: '1rem', color: '#0f172a', fontWeight: 800 }}>AI-Powered<br/>Reviews</h3>
-              <p style={{ color: '#475569', lineHeight: 1.6, fontSize: '0.95rem' }}>Our AI writes highly tailored, SEO-optimized reviews based on your specific business description so you rank higher automatically.</p>
+              <h3 style={{ fontSize: '1.35rem', marginBottom: '0.85rem', color: '#0f172a', fontWeight: 800 }}>AI-Powered Reviews</h3>
+              <p style={{ color: '#475569', lineHeight: 1.6, fontSize: '0.95rem', margin: 0 }}>Our AI writes highly tailored, SEO-optimized reviews based on your specific business description so you rank higher automatically.</p>
             </article>
 
-            <article style={{ background: 'white', padding: '2.5rem', borderRadius: '24px', boxShadow: '0 10px 40px -10px rgba(0,0,0,0.05)', display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-              <div style={{ width: '48px', height: '48px', background: '#f3e8ff', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9333ea', marginBottom: '1.5rem' }}>
+            {/* Feature 2 */}
+            <article className="feature-card">
+              <div className="feature-icon-wrapper" style={{ background: 'rgba(139, 92, 246, 0.08)', color: '#8b5cf6' }}>
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
               </div>
-              <h3 style={{ fontSize: '1.5rem', marginBottom: '1rem', color: '#0f172a', fontWeight: 800 }}>Linktree-Style<br/>Profile</h3>
-              <p style={{ color: '#475569', lineHeight: 1.6, fontSize: '0.95rem' }}>Get a beautifully designed, mobile-first profile page to showcase your Instagram, Facebook, Maps, WhatsApp, and Booking links.</p>
+              <h3 style={{ fontSize: '1.35rem', marginBottom: '0.85rem', color: '#0f172a', fontWeight: 800 }}>Linktree-Style Profile</h3>
+              <p style={{ color: '#475569', lineHeight: 1.6, fontSize: '0.95rem', margin: 0 }}>Get a beautifully designed, mobile-first profile page to showcase your Instagram, Facebook, Maps, WhatsApp, and Booking links.</p>
             </article>
 
-            <article style={{ background: 'white', padding: '2.5rem', borderRadius: '24px', boxShadow: '0 10px 40px -10px rgba(0,0,0,0.05)', display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-              <div style={{ width: '48px', height: '48px', background: '#eff6ff', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#2563eb', marginBottom: '1.5rem' }}>
+            {/* Feature 3 */}
+            <article className="feature-card">
+              <div className="feature-icon-wrapper" style={{ background: 'rgba(245, 158, 11, 0.08)', color: '#f59e0b' }}>
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
               </div>
-              <h3 style={{ fontSize: '1.5rem', marginBottom: '1rem', color: '#0f172a', fontWeight: 800 }}>Counter-Ready<br/>QR Codes</h3>
-              <p style={{ color: '#475569', lineHeight: 1.6, fontSize: '0.95rem' }}>Automatically generate a scannable QR code for your counter. Customers scan, tap, and post their review before they even leave your store.</p>
+              <h3 style={{ fontSize: '1.35rem', marginBottom: '0.85rem', color: '#0f172a', fontWeight: 800 }}>Counter-Ready QR Codes</h3>
+              <p style={{ color: '#475569', lineHeight: 1.6, fontSize: '0.95rem', margin: 0 }}>Automatically generate a scannable QR code for your counter. Customers scan, tap, and post their review before they even leave your store.</p>
             </article>
 
-          </div>
-        </div>
-      </section>
-
-      {/* TOOLS SECTION */}
-      <section id="tools" style={{ padding: '6rem 1.5rem', background: '#ffffff', borderBottom: '1px solid #f1f5f9' }}>
-        <div className="container">
-          <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
-            <span style={{ fontSize: '0.875rem', fontWeight: 700, color: '#3b82f6', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Free Business Utilities</span>
-            <h2 style={{ fontSize: '2.5rem', marginBottom: '1rem', color: '#0f172a', fontWeight: 800, marginTop: '0.5rem' }}>Free Growth Tools</h2>
-            <p style={{ color: '#475569', fontSize: '1.125rem', maxWidth: '700px', margin: '0 auto' }}>
-              Boost your local search visibility and counter-top presence with our specialized growth utilities. No login required.
-            </p>
-          </div>
-          
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '2rem', maxWidth: '1000px', margin: '0 auto' }}>
-            {/* Tool Card 1 */}
-            <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', padding: '2.5rem', borderRadius: '24px', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'space-between', boxShadow: '0 10px 30px -15px rgba(0,0,0,0.05)' }}>
-              <div style={{ width: '100%' }}>
-                <div style={{ width: '48px', height: '48px', background: '#eff6ff', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1.5rem', overflow: 'hidden', padding: '8px' }}>
-                  <Image src="/assets/phone_qr_code.png" alt="QR Code Icon" width={32} height={32} style={{ objectFit: 'contain' }} />
-                </div>
-                <h3 style={{ fontSize: '1.5rem', marginBottom: '1rem', color: '#0f172a', fontWeight: 800 }}>AI Google Review QR Generator</h3>
-                <p style={{ color: '#475569', lineHeight: 1.6, fontSize: '0.95rem', marginBottom: '1.5rem' }}>
-                  Design a completely custom Google Review QR poster. Input your business name, pick custom branding colors, and generate a print-ready A4 poster template for your storefront or checkout counter.
-                </p>
+            {/* Feature 4 */}
+            <article className="feature-card">
+              <div className="feature-icon-wrapper" style={{ background: 'rgba(16, 185, 129, 0.08)', color: '#10b981' }}>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
               </div>
-              <Link href="/tools/google-review-qr" style={{ width: '100%' }}>
-                <Button variant="primary" style={{ width: '100%', padding: '0.8rem', borderRadius: '12px', background: '#3b82f6', border: 'none', fontWeight: 700 }}>Open Free Generator &rarr;</Button>
-              </Link>
-            </div>
+              <h3 style={{ fontSize: '1.35rem', marginBottom: '0.85rem', color: '#0f172a', fontWeight: 800 }}>Leads & Booking CRM</h3>
+              <p style={{ color: '#475569', lineHeight: 1.6, fontSize: '0.95rem', margin: 0 }}>Capture customer contact inquiries directly from your profile page. Customize form fields, set validations, and organize leads dynamically in your private CRM dashboard.</p>
+            </article>
 
-            {/* Tool Card 2 */}
-            <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', padding: '2.5rem', borderRadius: '24px', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'space-between', boxShadow: '0 10px 30px -15px rgba(0,0,0,0.05)' }}>
-              <div style={{ width: '100%' }}>
-                <div style={{ width: '48px', height: '48px', background: '#eff6ff', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1.5rem', overflow: 'hidden', padding: '8px' }}>
-                  <Image src="/assets/business_card.png" alt="Business Card Icon" width={32} height={32} style={{ objectFit: 'contain' }} />
-                </div>
-                <h3 style={{ fontSize: '1.5rem', marginBottom: '1rem', color: '#0f172a', fontWeight: 800 }}>Digital Business Card</h3>
-                <p style={{ color: '#475569', lineHeight: 1.6, fontSize: '0.95rem', marginBottom: '1.5rem' }}>
-                  Create a modern digital business card. Pick from 5 professional templates (Classic, Creator, Elegant, Minimalist, Neon), fill in your contact information and social handles, and download/share for free.
-                </p>
-              </div>
-              <Link href="/tools/digital-business-card" style={{ width: '100%' }}>
-                <Button variant="primary" style={{ width: '100%', padding: '0.8rem', borderRadius: '12px', background: '#3b82f6', border: 'none', fontWeight: 700 }}>Open Free Creator &rarr;</Button>
-              </Link>
-            </div>
           </div>
         </div>
       </section>
 
       {/* HOW IT WORKS */}
-      <section id="how-it-works" style={{ padding: '8rem 1.5rem', background: '#ffffff' }}>
+      <section id="how-it-works" style={{ padding: '4rem 1.5rem 8rem 1.5rem', background: '#ffffff' }}>
         <div className="container">
           <h2 style={{ fontSize: '2.5rem', textAlign: 'center', marginBottom: '1rem', color: '#0f172a', fontWeight: 800 }}>How It Works</h2>
           <p style={{ color: '#475569', fontSize: '1.125rem', maxWidth: '600px', margin: '0 auto 4rem auto', textAlign: 'center' }}>Set up your profile in minutes and start converting customers into reviews immediately.</p>
@@ -378,7 +383,7 @@ export default async function Home() {
               <div>
                 <div style={{ display: 'flex', gap: '0.25rem', color: '#f59e0b', marginBottom: '1rem', fontSize: '1.25rem' }}>★★★★★</div>
                 <p style={{ color: '#334155', lineHeight: 1.6, fontSize: '1rem', fontStyle: 'italic', marginBottom: '1.5rem' }}>
-                  "paying $300 a month for Podium was eating into our margins. MyRevLink's one-time $10 fee is the best investment we've ever made. The profile page also lets us link our Fresha booking system directly."
+                  "Paying monthly fees for Podium was eating into our margins. MyRevLink's monthly Pro plan is incredibly affordable and is the best investment we've ever made. The profile page also lets us link our Fresha booking system directly."
                 </p>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
@@ -394,135 +399,233 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* FAQ SECTION */}
-      <section id="faq" style={{ background: '#f8fafc', padding: '8rem 0', borderTop: '1px solid #f1f5f9' }}>
-        <div className="container">
-          <h2 style={{ fontSize: '2.5rem', textAlign: 'center', marginBottom: '1rem', color: '#0f172a', fontWeight: 800 }}>Frequently Asked Questions</h2>
-          <p style={{ color: '#475569', fontSize: '1.125rem', maxWidth: '600px', margin: '0 auto 4rem auto', textAlign: 'center' }}>Everything you need to know about MyRevLink.</p>
+      {/* PRICING SECTION (Positioned after Loved by Local Businesses) */}
+      <section id="pricing" style={{ padding: '8rem 0', position: 'relative', background: 'linear-gradient(180deg, #f8fafc 0%, #ffffff 100%)', borderBottom: '1px solid #f1f5f9' }}>
+        <div className="container flex-col flex-center" style={{ textAlign: 'center', alignItems: 'center' }}>
+          <h2 style={{ fontSize: '2.5rem', marginBottom: '0.75rem', color: '#0f172a', fontWeight: 800 }}>Simple, Flexible Pricing</h2>
+          <p style={{ color: '#475569', fontSize: '1.125rem', marginBottom: '4rem', maxWidth: '600px' }}>
+            Choose the plan that fits your business. Start free, upgrade to Pro when you need unlimited scale.
+          </p>
           
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem', maxWidth: '1000px', margin: '0 auto' }}>
-            
-            <div style={{ padding: '2rem', background: 'white', borderRadius: '20px', boxShadow: '0 4px 20px -2px rgba(0,0,0,0.02)', border: '1px solid #f1f5f9' }}>
-              <h3 style={{ fontSize: '1.2rem', marginBottom: '0.75rem', color: '#0f172a', fontWeight: 700 }}>Do my customers need an app to use this?</h3>
-              <p style={{ color: '#475569', lineHeight: 1.6, margin: 0, fontSize: '0.95rem' }}>No! MyRevLink works entirely in the web browser. When customers scan your QR code or click your link, it opens instantly on their phone without any downloads required.</p>
+          <div style={{ 
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
+            gap: "2.5rem",
+            width: "100%",
+            maxWidth: "880px",
+            alignItems: "stretch"
+          }}>
+            {/* Free Plan Card */}
+            <div style={{
+              background: 'white', 
+              borderRadius: '24px', 
+              boxShadow: '0 10px 30px -10px rgba(0, 0, 0, 0.04)', 
+              border: '1px solid #e2e8f0', 
+              padding: '3rem 2.25rem', 
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between',
+              position: 'relative'
+            }}>
+              <div>
+                <h3 style={{ fontSize: '1.5rem', marginBottom: '0.5rem', color: '#0f172a', fontWeight: 700 }}>Free Plan</h3>
+                <p style={{ color: '#64748b', fontSize: '0.875rem', marginBottom: '2rem' }}>Perfect to get started.</p>
+                
+                <div style={{ fontSize: '3.5rem', fontWeight: 800, marginBottom: '2rem', color: '#0f172a', display: 'flex', justifyContent: 'center', alignItems: 'flex-start' }}>
+                  <span style={{ fontSize: '1.75rem', marginTop: '0.25rem', fontWeight: 600 }}>{priceSymbol}</span>0<span style={{ fontSize: '1rem', color: '#64748b', alignSelf: 'flex-end', marginBottom: '0.75rem', marginLeft: '0.25rem', fontWeight: 500 }}>/mo</span>
+                </div>
+                
+                <ul style={{ textAlign: 'left', listStyle: 'none', padding: 0, margin: '0 0 2.5rem 0', display: 'flex', flexDirection: 'column', gap: '1.25rem', borderTop: '1px solid #f1f5f9', paddingTop: '1.5rem' }}>
+                  <li style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}><span style={{ color: '#10b981', fontWeight: 'bold' }}>✓</span> <span style={{ color: '#334155', fontSize: '0.95rem' }}>Custom myrevlink.in/b/ URL</span></li>
+                  <li style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}><span style={{ color: '#10b981', fontWeight: 'bold' }}>✓</span> <span style={{ color: '#334155', fontSize: '0.95rem' }}>7 AI Review Generations</span></li>
+                  <li style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}><span style={{ color: '#10b981', fontWeight: 'bold' }}>✓</span> <span style={{ color: '#334155', fontSize: '0.95rem' }}>7 Leads & Inquiries Inbox</span></li>
+                  <li style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}><span style={{ color: '#10b981', fontWeight: 'bold' }}>✓</span> <span style={{ color: '#334155', fontSize: '0.95rem' }}>Basic Contact Form Integration</span></li>
+                  <li style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}><span style={{ color: '#10b981', fontWeight: 'bold' }}>✓</span> <span style={{ color: '#334155', fontSize: '0.95rem' }}>Printable QR Code Poster</span></li>
+                </ul>
+              </div>
+              
+              <Link href="/sign-up" style={{ width: '100%', display: 'block' }}>
+                <Button variant="secondary" style={{ width: '100%', padding: '1.1rem', fontSize: '0.95rem', borderRadius: '12px', fontWeight: 700, border: '1px solid #cbd5e1' }}>Get Started Free</Button>
+              </Link>
             </div>
 
-            <div style={{ padding: '2rem', background: 'white', borderRadius: '20px', boxShadow: '0 4px 20px -2px rgba(0,0,0,0.02)', border: '1px solid #f1f5f9' }}>
-              <h3 style={{ fontSize: '1.2rem', marginBottom: '0.75rem', color: '#0f172a', fontWeight: 700 }}>How does the AI know what to write?</h3>
-              <p style={{ color: '#475569', lineHeight: 1.6, margin: 0, fontSize: '0.95rem' }}>The AI uses the specific "Business Description" you provide in your dashboard. It combines this context with the star rating the user selects to write a natural, highly relevant review.</p>
-            </div>
+            {/* Pro Plan Card */}
+            <div style={{
+              background: 'white', 
+              borderRadius: '24px', 
+              boxShadow: '0 20px 40px -15px rgba(59, 130, 246, 0.12)', 
+              border: '2px solid #3b82f6', 
+              padding: '3rem 2.25rem', 
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between',
+              position: 'relative',
+              transform: 'scale(1.02)'
+            }}>
+              {/* Promo Ribbon */}
+              <div style={{ 
+                position: 'absolute', 
+                top: '0', 
+                left: '50%', 
+                transform: 'translateX(-50%) translateY(-50%)',
+                background: 'linear-gradient(90deg, #3b82f6, #8b5cf6)', 
+                color: 'white', 
+                padding: '0.35rem 1.25rem', 
+                fontSize: '0.75rem', 
+                fontWeight: 800, 
+                borderRadius: '9999px',
+                boxShadow: '0 4px 10px rgba(59,130,246,0.25)',
+                textTransform: 'uppercase'
+              }}>
+                Recommended
+              </div>
 
-            <div style={{ padding: '2rem', background: 'white', borderRadius: '20px', boxShadow: '0 4px 20px -2px rgba(0,0,0,0.02)', border: '1px solid #f1f5f9' }}>
-              <h3 style={{ fontSize: '1.2rem', marginBottom: '0.75rem', color: '#0f172a', fontWeight: 700 }}>Is this a monthly subscription?</h3>
-              <p style={{ color: '#475569', lineHeight: 1.6, margin: 0, fontSize: '0.95rem' }}>No, we believe in simple pricing. You pay a one-time fee of {priceSymbol}{priceAmount} (launch promo) and gain lifetime access to your custom link, unlimited AI generations, and your dashboard.</p>
+              <div>
+                <h3 style={{ fontSize: '1.5rem', marginBottom: '0.5rem', color: '#0f172a', fontWeight: 700 }}>Pro Plan</h3>
+                <p style={{ color: '#64748b', fontSize: '0.875rem', marginBottom: '2rem' }}>Scale your review pipeline.</p>
+                
+                <div style={{ fontSize: '3.5rem', fontWeight: 800, marginBottom: '2rem', color: '#0f172a', display: 'flex', justifyContent: 'center', alignItems: 'flex-start' }}>
+                  <span style={{ fontSize: '1.75rem', marginTop: '0.25rem', fontWeight: 600 }}>{priceSymbol}</span>{priceAmount}<span style={{ fontSize: '1rem', color: '#64748b', alignSelf: 'flex-end', marginBottom: '0.75rem', marginLeft: '0.25rem', fontWeight: 500 }}>/mo</span>
+                </div>
+                
+                <ul style={{ textAlign: 'left', listStyle: 'none', padding: 0, margin: '0 0 2.5rem 0', display: 'flex', flexDirection: 'column', gap: '1.25rem', borderTop: '1px solid #f1f5f9', paddingTop: '1.5rem' }}>
+                  <li style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}><span style={{ color: '#3b82f6', fontWeight: 'bold' }}>✓</span> <span style={{ color: '#1e293b', fontSize: '0.95rem', fontWeight: 600 }}>Unlimited AI Review Generations</span></li>
+                  <li style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}><span style={{ color: '#3b82f6', fontWeight: 'bold' }}>✓</span> <span style={{ color: '#1e293b', fontSize: '0.95rem', fontWeight: 600 }}>Unlimited Leads & Inquiries</span></li>
+                  <li style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}><span style={{ color: '#3b82f6', fontWeight: 'bold' }}>✓</span> <span style={{ color: '#334155', fontSize: '0.95rem' }}>Custom Title, Button & Success Message</span></li>
+                  <li style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}><span style={{ color: '#334155', fontSize: '0.95rem' }}>Required Field Choices (Email/Phone)</span></li>
+                  <li style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}><span style={{ color: '#334155', fontSize: '0.95rem' }}>Custom Branding & Color Gradients</span></li>
+                  <li style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}><span style={{ color: '#334155', fontSize: '0.95rem' }}>Showcase Sections (Videos, Apps, Products)</span></li>
+                  <li style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}><span style={{ color: '#334155', fontSize: '0.95rem' }}>AI Draft Auto-Optimization for Positive Ratings</span></li>
+                </ul>
+              </div>
+              
+              <Link href="/sign-up" style={{ width: '100%', display: 'block' }}>
+                <Button variant="primary" style={{ width: '100%', padding: '1.1rem', fontSize: '0.95rem', borderRadius: '12px', background: 'linear-gradient(90deg, #3b82f6, #8b5cf6)', border: 'none', fontWeight: 700, boxShadow: '0 4px 12px rgba(59,130,246,0.3)' }}>Upgrade to Pro</Button>
+              </Link>
             </div>
-
-            <div style={{ padding: '2rem', background: 'white', borderRadius: '20px', boxShadow: '0 4px 20px -2px rgba(0,0,0,0.02)', border: '1px solid #f1f5f9' }}>
-              <h3 style={{ fontSize: '1.2rem', marginBottom: '0.75rem', color: '#0f172a', fontWeight: 700 }}>Can I link my other social media?</h3>
-              <p style={{ color: '#475569', lineHeight: 1.6, margin: 0, fontSize: '0.95rem' }}>Absolutely. Your public profile acts as a digital business card. You can add links to your Instagram, Facebook, X (Twitter), YouTube, WhatsApp, and Booking page.</p>
-            </div>
-
           </div>
         </div>
       </section>
 
-      {/* PRICING SECTION */}
-      <section id="pricing" style={{ padding: '8rem 0', position: 'relative', background: 'linear-gradient(180deg, #f8fafc 0%, #ffffff 100%)' }}>
-        <div className="container flex-col flex-center" style={{ textAlign: 'center', alignItems: 'center' }}>
-          <h2 style={{ fontSize: '2.5rem', marginBottom: '1rem', color: '#0f172a', fontWeight: 800 }}>Simple, Honest Pricing</h2>
-          <p style={{ color: '#475569', fontSize: '1.125rem', marginBottom: '4rem', maxWidth: '500px' }}>No monthly subscriptions. No hidden fees. Pay once and keep your business link forever.</p>
+      {/* FAQ SECTION */}
+      <section id="faq" style={{ background: '#f8fafc', padding: '8rem 0', borderTop: '1px solid #f1f5f9' }}>
+        <style dangerouslySetInnerHTML={{ __html: `
+          .faq-accordion {
+            max-width: 800px;
+            width: 100%;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+          }
+          .faq-item {
+            background: #ffffff;
+            border-radius: 20px;
+            border: 1px solid #e2e8f0;
+            overflow: hidden;
+            box-shadow: 0 4px 15px -3px rgba(0, 0, 0, 0.02);
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+          }
+          .faq-item[open] {
+            border-color: #3b82f6;
+            box-shadow: 0 15px 30px -10px rgba(59, 130, 246, 0.1);
+          }
+          .faq-summary {
+            padding: 1.5rem 2rem;
+            font-weight: 700;
+            color: #0f172a;
+            cursor: pointer;
+            list-style: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            user-select: none;
+            font-size: 1.1rem;
+            transition: color 0.2s ease;
+          }
+          .faq-summary::-webkit-details-marker {
+            display: none;
+          }
+          .faq-summary:hover {
+            color: #2563eb;
+          }
+          .faq-summary::after {
+            content: '+';
+            font-size: 1.5rem;
+            font-weight: 500;
+            color: #64748b;
+            transition: transform 0.3s ease;
+          }
+          .faq-item[open] .faq-summary::after {
+            content: '−';
+            color: #3b82f6;
+          }
+          .faq-content {
+            padding: 0 2rem 1.75rem 2rem;
+            color: #475569;
+            line-height: 1.6;
+            font-size: 0.975rem;
+            border-top: 1px solid #f1f5f9;
+            padding-top: 1.25rem;
+          }
+        `}} />
+
+        <div className="container">
+          <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
+            <h2 style={{ fontSize: '2.5rem', marginBottom: '1rem', color: '#0f172a', fontWeight: 800 }}>Frequently Asked Questions</h2>
+            <p style={{ color: '#475569', fontSize: '1.125rem', maxWidth: '600px', margin: '0 auto', textAlign: 'center' }}>Everything you need to know about MyRevLink.</p>
+          </div>
           
-          <div style={{ 
-            maxWidth: '440px', 
-            width: '100%', 
-            background: 'white', 
-            borderRadius: '28px', 
-            boxShadow: '0 20px 40px -15px rgba(0, 0, 0, 0.08)', 
-            border: '1px solid #e2e8f0', 
-            padding: '3rem', 
-            position: 'relative', 
-            overflow: 'hidden' 
-          }}>
-            {/* Promo Ribbon */}
-            <div style={{ 
-              position: 'absolute', 
-              top: '18px', 
-              right: '-36px', 
-              background: '#e11d48', 
-              color: 'white', 
-              padding: '0.5rem 3rem', 
-              fontSize: '0.75rem', 
-              fontWeight: 800, 
-              transform: 'rotate(45deg)',
-              boxShadow: '0 4px 10px rgba(0,0,0,0.1)'
-            }}>
-              {priceSymbol}{priceAmount} ONLY
-            </div>
-            <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '5px', background: '#3b82f6' }} />
+          <div className="faq-accordion">
             
-            <h3 style={{ fontSize: '1.5rem', marginBottom: '0.5rem', color: '#0f172a', fontWeight: 700 }}>Lifetime License</h3>
-            <p style={{ color: '#64748b', fontSize: '0.875rem', marginBottom: '2rem' }}>Every feature included, forever.</p>
-            
-            <div style={{ fontSize: '4.5rem', fontWeight: 800, marginBottom: '0.5rem', color: '#0f172a', display: 'flex', justifyContent: 'center', alignItems: 'flex-start' }}>
-              <span style={{ fontSize: '2rem', marginTop: '0.5rem', fontWeight: 600 }}>{priceSymbol}</span>{priceAmount}
-            </div>
-            <p style={{ color: '#e11d48', fontSize: '0.875rem', fontWeight: 700, marginBottom: '2rem' }}>*Promo price for first 15 customers (Regular price {isIndia ? "₹4,999" : "$39"})</p>
-            
-            {/* FAQPage JSON-LD schema */}
-            <script
-              type="application/ld+json"
-              dangerouslySetInnerHTML={{
-                __html: JSON.stringify({
-                  "@context": "https://schema.org",
-                  "@type": "FAQPage",
-                  "mainEntity": [
-                    {
-                      "@type": "Question",
-                      "name": "Do my customers need an app to use this?",
-                      "acceptedAnswer": {
-                        "@type": "Answer",
-                        "text": "No! MyRevLink works entirely in the web browser. When customers scan your QR code or click your link, it opens instantly on their phone without any downloads required."
-                      }
-                    },
-                    {
-                      "@type": "Question",
-                      "name": "How does the AI know what to write?",
-                      "acceptedAnswer": {
-                        "@type": "Answer",
-                        "text": "The AI uses the specific 'Business Description' you provide in your dashboard. It combines this context with the star rating the user selects to write a natural, highly relevant review."
-                      }
-                    },
-                    {
-                      "@type": "Question",
-                      "name": "Is this a monthly subscription?",
-                      "acceptedAnswer": {
-                        "@type": "Answer",
-                        "text": "No, we believe in simple pricing. You pay a one-time fee and gain lifetime access to your custom link, unlimited AI generations, and your dashboard."
-                      }
-                    },
-                    {
-                      "@type": "Question",
-                      "name": "Can I link my other social media?",
-                      "acceptedAnswer": {
-                        "@type": "Answer",
-                        "text": "Absolutely. Your public profile acts as a digital business card. You can add links to your Instagram, Facebook, X (Twitter), YouTube, WhatsApp, and Booking page."
-                      }
-                    }
-                  ]
-                }).replace(/</g, '\\u003c')
-              }}
-            />
-            
-            <ul style={{ textAlign: 'left', listStyle: 'none', padding: 0, margin: '0 0 2.5rem 0', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-              <li style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}><span style={{ color: '#10b981', fontWeight: 'bold' }}>✓</span> <span style={{ color: '#334155', fontSize: '0.95rem' }}>Custom myrevlink.in/b/ URL</span></li>
-              <li style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}><span style={{ color: '#10b981', fontWeight: 'bold' }}>✓</span> <span style={{ color: '#334155', fontSize: '0.95rem' }}>Unlimited AI Review Generations</span></li>
-              <li style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}><span style={{ color: '#10b981', fontWeight: 'bold' }}>✓</span> <span style={{ color: '#334155', fontSize: '0.95rem' }}>Printable QR Code</span></li>
-              <li style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}><span style={{ color: '#10b981', fontWeight: 'bold' }}>✓</span> <span style={{ color: '#334155', fontSize: '0.95rem' }}>Social & WhatsApp Integrations</span></li>
-              <li style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}><span style={{ color: '#10b981', fontWeight: 'bold' }}>✓</span> <span style={{ color: '#334155', fontSize: '0.95rem' }}>Forever Access</span></li>
-            </ul>
-            <Link href="/sign-up" style={{ width: '100%', display: 'block' }}>
-              <Button variant="primary" style={{ width: '100%', padding: '1.25rem', fontSize: '1rem', borderRadius: '12px', background: '#3b82f6', border: 'none', fontWeight: 700, boxShadow: '0 4px 12px rgba(59,130,246,0.3)' }}>Get Lifetime Access</Button>
-            </Link>
+            {/* FAQ 1 */}
+            <details className="faq-item">
+              <summary className="faq-summary">Do my customers need an app to use this?</summary>
+              <div className="faq-content">
+                No! MyRevLink works entirely in the web browser. When customers scan your QR code or click your link, it opens instantly on their phone without any downloads required.
+              </div>
+            </details>
+
+            {/* FAQ 2 */}
+            <details className="faq-item">
+              <summary className="faq-summary">How does the AI know what to write?</summary>
+              <div className="faq-content">
+                The AI uses the specific "Business Description" you provide in your dashboard. It combines this context with the star rating the user selects to write a natural, highly relevant review that matches your business offerings.
+              </div>
+            </details>
+
+            {/* FAQ 3 */}
+            <details className="faq-item">
+              <summary className="faq-summary">How does the Customer Leads & Booking CRM work?</summary>
+              <div className="faq-content">
+                Business owners can display a clean, glassmorphic contact form on their public profile page to collect inquiries. You can customize the form titles, button text, success messages, and choose required fields (Email, Phone, or both). All submissions are saved directly to your private Leads dashboard where you can customize pipeline stages (e.g. New, Contacted, Accepted, Rejected) and change lead statuses.
+              </div>
+            </details>
+
+            {/* FAQ 4 */}
+            <details className="faq-item">
+              <summary className="faq-summary">How do I generate a printable Google Review QR code poster?</summary>
+              <div className="faq-content">
+                Use our Free Google Review QR Poster Generator in the top "Tools" menu. Input your business name, customize the theme color to match your storefront, and generate a printable A4 counter poster. Customers can scan the QR code to write reviews instantly.
+              </div>
+            </details>
+
+            {/* FAQ 5 */}
+            <details className="faq-item">
+              <summary className="faq-summary">Can I create a free digital business card?</summary>
+              <div className="faq-content">
+                Yes! We offer a Free Digital Business Card creator. You can choose from 5 beautiful layouts (Classic, Creator, Elegant, Minimalist, Neon), enter your phone, email, and social links, and download/share the card for free to start sharing your profile contact details instantly.
+              </div>
+            </details>
+
+            {/* FAQ 6 */}
+            <details className="faq-item">
+              <summary className="faq-summary">Is this a monthly subscription?</summary>
+              <div className="faq-content">
+                We offer a Free Plan with basic features (including 7 initial AI review credits and 7 customer leads capture) and a premium Pro Plan with monthly subscription recurring options of {priceSymbol}{priceAmount}/mo for unlimited reviews, leads, advanced customizations, branding colors, and showcase sliders.
+              </div>
+            </details>
+
           </div>
         </div>
       </section>
