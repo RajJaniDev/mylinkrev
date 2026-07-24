@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import Image from "next/image";
 import type { Metadata } from "next";
+import Footer from "@/components/Footer";
 
 // Define the industry metadata database
 interface IndustryData {
@@ -349,19 +350,7 @@ export default async function IndustryPage(props: { params: Promise<{ industry: 
       </section>
 
       {/* FOOTER */}
-      <footer style={{ marginTop: "auto", borderTop: "1px solid #e2e8f0", background: "#f8fafc" }}>
-        <div className="container" style={{ padding: "3rem 1.5rem", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1.5rem" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-            <Image src="/logo.png" alt="MyRevLink Logo" width={24} height={24} style={{ objectFit: 'contain' }} />
-            <span style={{ fontWeight: "bold", color: "#0f172a" }}>MyRevLink</span>
-          </div>
-          <div style={{ display: "flex", gap: "1.5rem", fontSize: "0.875rem" }}>
-            <Link href="/" style={{ color: "#475569", textDecoration: "none" }}>Home</Link>
-            <Link href="/privacy-policy" style={{ color: "#475569", textDecoration: "none" }}>Privacy</Link>
-            <Link href="/terms-and-conditions" style={{ color: "#475569", textDecoration: "none" }}>Terms</Link>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </main>
   );
 }
