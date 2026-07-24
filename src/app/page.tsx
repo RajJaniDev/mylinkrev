@@ -95,14 +95,23 @@ export default async function Home() {
           {/* LEFT COLUMN */}
           <div className="hero-content">
             
-            {/* Product Hunt Badge */}
-            <div style={{ marginBottom: '1.5rem' }}>
+            {/* Badges */}
+            <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'center', marginBottom: '1.5rem' }}>
               <a href="https://www.producthunt.com/products/myrevlink?embed=true&utm_source=badge-featured&utm_medium=badge&utm_campaign=badge-myrevlink" target="_blank" rel="noopener noreferrer">
                 <img 
                   src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1185494&theme=light&t=1782982543541" 
                   alt="MyRevLink - Turn Happy Customers into 5-Star Reviews, Automatically | Product Hunt" 
                   style={{ width: '220px', height: '48px', borderRadius: '8px' }} 
                   width="220" 
+                  height="48" 
+                />
+              </a>
+              <a href="https://tools.cafe/p/tool-1784885868466" target="_blank" rel="noopener noreferrer">
+                <img 
+                  src="https://tools.cafe/b/light.svg" 
+                  alt="Listed on tools.cafe" 
+                  style={{ width: '160px', height: '48px', borderRadius: '8px' }} 
+                  width="160" 
                   height="48" 
                 />
               </a>
