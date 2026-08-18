@@ -1,6 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
-import Groq from "groq-sdk";
+import OpenAI from "openai";
 import { supabase } from "@/lib/supabase";
+import fallbackReviewsData from "@/data/generic-reviews.json";
+
+type StarRatingKey = "1" | "2" | "3" | "4" | "5";
+
+function getRandomFallbackReview(stars: number, businessName: string): string {
+  const normalizedStars = Math.min(5, Math.max(1, Math.round(stars || 5)));
+  const starKey = String(normalizedStars) as StarRatingKey;
+  const reviewsList = fallbackReviewsData[starKey] || fallbackReviewsData["5"];
+  
+  const randomIndex = Math.floor(Math.random() * reviewsList.length);
+  const selectedTemplate = reviewsList[randomIndex];
+  const nameToUse = businessName && businessName.trim() ? businessName.trim() : "this business";
+  
+  return selectedTemplate.replace(/BusinessName/g, nameToUse);
+}
 
 export async function POST(req: NextRequest) {
   let businessName = "";
@@ -37,32 +52,64 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    const groq = new Groq({
-      apiKey: process.env.GROQ_API_KEY || 'dummy_key',
-    });
+    let generatedReview = "";
 
-    const prompt = `Write a short, SEO-friendly, realistic Google Review (2-3 sentences) for a business named "${businessName}". 
-The customer gave them a ${stars} out of 5 stars rating.
-Business Description: ${businessDescription || 'A local business.'}
+    try {
+      const apiKey = process.env.OPENAI_API_KEY || "";
+      if (!apiKey) {
+        throw new Error("OPENAI_API_KEY is missing in environment variables.");
+      }
+
+      const openai = new OpenAI({ apiKey });
+
+      const prompt = `Write a short, realistic, SEO-friendly Google Review (STRICTLY 2-3 sentences max, NO long paragraphs) for a business named "${businessName}".
+The customer rated them ${stars} out of 5 stars.
+Business Description / Services: ${businessDescription || 'A local service business.'}
 
 CRITICAL INSTRUCTIONS:
-- The review MUST explicitly mention specific services, products, or details from the Business Description to boost local SEO.
-- Do NOT write a generic review. It must be highly specific to what this business actually does.
-- It must sound like a real, satisfied customer wrote it naturally.
-- Do not include hashtags. Keep it concise (2-3 sentences max).`;
+- Keep it STRICTLY short: 2 to 3 sentences max.
+- Make it sound like a real, authentic customer wrote it naturally.
+- Mention specific services, products, or details from the Business Description to boost local SEO.
+- Do NOT include quotes around the review, headers, or hashtags.`;
 
-    const chatCompletion = await groq.chat.completions.create({
-      messages: [{ role: "user", content: prompt }],
-      model: "llama-3.1-8b-instant",
-      temperature: 0.7,
-      max_tokens: 150,
-    });
+      const chatCompletion = await openai.chat.completions.create({
+        model: "gpt-4o-mini",
+        messages: [
+          { role: "system", content: "You write short 2-3 sentence, human-like, SEO-optimized Google reviews." },
+          { role: "user", content: prompt }
+        ],
+        temperature: 0.7,
+        max_tokens: 150,
+      });
 
-    let generatedReview = chatCompletion.choices[0]?.message?.content || "";
-    // Strip leading and trailing quotes from the AI response
-    generatedReview = generatedReview.trim().replace(/^["']+|["']+$/g, '');
+      generatedReview = chatCompletion.choices[0]?.message?.content?.trim() || "";
+      // Strip leading and trailing quotes from the AI response
+      generatedReview = generatedReview.replace(/^["']+|["']+$/g, '');
+    } catch (aiError: any) {
+      console.error("OpenAI API Error:", aiError);
 
-    // Decrement credit if business was found and not completed
+      // Log AI error to Supabase error_logs table for background monitoring
+      try {
+        await supabase.from("error_logs").insert({
+          error_message: aiError.message || String(aiError),
+          error_stack: aiError.stack || null,
+          api_route: "/api/generate-review",
+          request_data: { businessName, stars, businessDescription, provider: "openai" }
+        });
+      } catch (dbError) {
+        console.error("Failed to log error to Supabase:", dbError);
+      }
+
+      // Use fail-safe fallback review
+      generatedReview = getRandomFallbackReview(stars, businessName);
+    }
+
+    // Fallback safeguard if for any reason generatedReview is empty
+    if (!generatedReview) {
+      generatedReview = getRandomFallbackReview(stars, businessName);
+    }
+
+    // Decrement credit if business was found and payment status is not completed
     if (businessData && businessData.payment_status !== "completed") {
       const socials = businessData.social_links || {};
       const credits = socials.credits !== undefined ? Number(socials.credits) : 7;
@@ -78,20 +125,10 @@ CRITICAL INSTRUCTIONS:
 
     return NextResponse.json({ review: generatedReview });
   } catch (error: any) {
-    console.error("Groq AI Error:", error);
+    console.error("Generate Review Error:", error);
 
-    // Log the error to Supabase database
-    try {
-      await supabase.from("error_logs").insert({
-        error_message: error.message || String(error),
-        error_stack: error.stack || null,
-        api_route: "/api/generate-review",
-        request_data: { businessName, stars, businessDescription }
-      });
-    } catch (dbError) {
-      console.error("Failed to log error to Supabase:", dbError);
-    }
-
-    return NextResponse.json({ error: "Failed to generate review" }, { status: 500 });
+    // Fail safe fallback response for critical failures
+    const fallbackReview = getRandomFallbackReview(stars || 5, businessName || "this business");
+    return NextResponse.json({ review: fallbackReview });
   }
 }
