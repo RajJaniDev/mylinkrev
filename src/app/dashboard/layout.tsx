@@ -47,6 +47,11 @@ export default async function DashboardLayout({
     lead.status === "new"
   ).length;
 
+  const feedbacks = Array.isArray(business.feedbacks)
+    ? business.feedbacks
+    : (Array.isArray(business.social_links?.feedbacks) ? business.social_links.feedbacks : []);
+  const feedbackCount = feedbacks.length;
+
   return (
     <main className="dashboard-layout-wrapper animate-fade-in">
       <div className="dashboard-main-content">
@@ -91,7 +96,7 @@ export default async function DashboardLayout({
           </div>
 
           {/* Shared Top Navigation Menu */}
-          <DashboardNav leadsCount={newLeadsCount} />
+          <DashboardNav leadsCount={newLeadsCount} feedbackCount={feedbackCount} />
 
           {children}
         </div>

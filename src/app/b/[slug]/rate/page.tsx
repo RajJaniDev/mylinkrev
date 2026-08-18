@@ -4,16 +4,41 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/Button";
 import { useParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import fallbackReviewsData from "@/data/generic-reviews.json";
+
+type StarRatingKey = "1" | "2" | "3" | "4" | "5";
+
+function getClientFallbackReview(stars: number, businessName?: string): string {
+  const normalizedStars = Math.min(5, Math.max(1, Math.round(stars || 5)));
+  const starKey = String(normalizedStars) as StarRatingKey;
+  const reviewsList = fallbackReviewsData[starKey] || fallbackReviewsData["5"];
+  
+  const randomIndex = Math.floor(Math.random() * reviewsList.length);
+  const selectedTemplate = reviewsList[randomIndex];
+  const nameToUse = businessName && businessName.trim() ? businessName.trim() : "this business";
+  
+  return selectedTemplate.replace(/BusinessName/g, nameToUse);
+}
 
 export default function RateBusinessPage() {
   const params = useParams();
   const slug = params.slug as string;
   const [business, setBusiness] = useState<any>(null);
   const [stars, setStars] = useState<number>(0);
+  
+  // High Rating (4-5 Stars) state
   const [review, setReview] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [copied, setCopied] = useState(false);
+
+  // Low Rating (1-3 Stars) Feedback Form state
+  const [feedbackName, setFeedbackName] = useState("");
+  const [feedbackContact, setFeedbackContact] = useState("");
+  const [feedbackMessage, setFeedbackMessage] = useState("");
+  const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
+  const [feedbackError, setFeedbackError] = useState("");
+  const [submittingFeedback, setSubmittingFeedback] = useState(false);
 
   useEffect(() => {
     if (!slug) return;
@@ -27,48 +52,99 @@ export default function RateBusinessPage() {
 
   const handleStarClick = async (rating: number) => {
     setStars(rating);
-    setLoading(true);
     setError("");
-    
+    setFeedbackError("");
+    setFeedbackSubmitted(false);
+    setReview("");
+
+    // If rating is 3 stars or lower, show feedback box (do NOT generate AI review)
+    if (rating <= 3 && !business?.social_links?.always_positive) {
+      return;
+    }
+
+    // 4 or 5 stars -> Generate AI Review
+    setLoading(true);
     try {
+      const targetStars = business?.social_links?.always_positive ? 5 : rating;
       const res = await fetch("/api/generate-review", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          businessName: business.name,
-          businessDescription: business.description,
-          stars: business.social_links?.always_positive ? 5 : rating,
+          businessName: business?.name,
+          businessDescription: business?.description,
+          stars: targetStars,
           slug: slug
         })
       });
 
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "API returned status " + res.status);
-
-      setReview(data.review);
-    } catch (err: any) {
-      setError("Failed to generate review. Please try again.");
       
-      // Log client-side error to our logging API
-      try {
-        await fetch("/api/log-error", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            errorMessage: err.message || String(err),
-            errorStack: err.stack || null,
-            apiRoute: `/b/${slug}/rate`,
-            requestData: {
-              businessName: business?.name,
-              stars: rating
-            }
-          })
-        });
-      } catch (logErr) {
-        console.error("Failed to report client-side error to logging endpoint:", logErr);
+      if (res.status === 403) {
+        setError(data.error || "This business has run out of free AI review credits.");
+        return;
       }
+
+      if (data && data.review) {
+        setReview(data.review);
+      } else {
+        setReview(getClientFallbackReview(targetStars, business?.name));
+      }
+    } catch (err: any) {
+      console.error("Generate review request failed:", err);
+      const targetStars = business?.social_links?.always_positive ? 5 : rating;
+      setReview(getClientFallbackReview(targetStars, business?.name));
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleFeedbackSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setFeedbackError("");
+
+    // Input validations
+    if (!feedbackName.trim()) {
+      setFeedbackError("Please enter your name.");
+      return;
+    }
+
+    if (!feedbackContact.trim()) {
+      setFeedbackError("Please enter your phone number or email address.");
+      return;
+    }
+
+    if (!feedbackMessage.trim()) {
+      setFeedbackError("Please describe your experience or problem.");
+      return;
+    }
+
+    setSubmittingFeedback(true);
+
+    try {
+      const res = await fetch("/api/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          slug,
+          name: feedbackName,
+          contact: feedbackContact,
+          message: feedbackMessage,
+          stars: stars
+        })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to submit feedback.");
+      }
+
+      setFeedbackSubmitted(true);
+    } catch (err: any) {
+      console.error("Feedback submit error:", err);
+      setFeedbackError(err.message || "Failed to submit feedback. Please try again.");
+    } finally {
+      setSubmittingFeedback(false);
     }
   };
 
@@ -93,6 +169,7 @@ export default function RateBusinessPage() {
 
   const primaryColor = socials.theme_primary || '#3b82f6';
   const secondaryColor = socials.theme_secondary || primaryColor;
+  const isLowRating = stars > 0 && stars <= 3 && !socials.always_positive;
 
   return (
     <main style={{ 
@@ -101,7 +178,7 @@ export default function RateBusinessPage() {
       '--accent': secondaryColor
     } as React.CSSProperties}>
       
-      {/* Elegant Ambient Full-Page Background */}
+      {/* Ambient Full-Page Background */}
       <div style={{
         position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
         background: 'radial-gradient(circle at 50% 0%, color-mix(in srgb, var(--primary) 15%, transparent) 0%, transparent 50%), radial-gradient(circle at 100% 100%, color-mix(in srgb, var(--accent) 10%, transparent) 0%, transparent 50%)',
@@ -124,7 +201,9 @@ export default function RateBusinessPage() {
             
             <h2 style={{ margin: '0 0 0.5rem 0', textAlign: 'center' }}>Rate {business.name}</h2>
             <p style={{ color: 'var(--secondary-foreground)', marginBottom: '2rem', textAlign: 'center' }}>
-              Tap a star to let our AI write a perfect review for you!
+              {isLowRating 
+                ? "Please share your experience so management can address your concern directly."
+                : "Tap a star to let our AI write a perfect review for you!"}
             </p>
 
             <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '2rem' }}>
@@ -155,7 +234,8 @@ export default function RateBusinessPage() {
             
             {error && <p style={{ color: '#ef4444', marginBottom: '1rem', background: 'rgba(239, 68, 68, 0.1)', padding: '0.5rem 1rem', borderRadius: '0.5rem' }}>{error}</p>}
 
-            {review && !loading && (
+            {/* High Rating (4 or 5 stars): AI Review Display */}
+            {!isLowRating && review && !loading && (
                <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '1.5rem', animation: 'fadeIn 0.5s' }}>
                   <textarea 
                     value={review}
@@ -183,6 +263,103 @@ export default function RateBusinessPage() {
                     {copied ? "✓ Copied! Redirecting..." : "Copy and Go to Google"}
                   </button>
                </div>
+            )}
+
+            {/* Low Rating (1, 2, or 3 stars): Feedback Form */}
+            {isLowRating && (
+              <div style={{ width: '100%', animation: 'fadeIn 0.5s' }}>
+                {feedbackSubmitted ? (
+                  <div style={{
+                    padding: '2rem 1.5rem',
+                    textAlign: 'center',
+                    background: 'rgba(16, 185, 129, 0.1)',
+                    border: '1px solid rgba(16, 185, 129, 0.3)',
+                    borderRadius: '1rem',
+                    color: '#10b981'
+                  }}>
+                    <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '1.25rem' }}>Thank You for Your Feedback</h3>
+                    <p style={{ margin: 0, fontSize: '0.95rem', color: 'var(--foreground)', opacity: 0.9 }}>
+                      Your comments have been sent directly to management. We appreciate your input and will work to make things right.
+                    </p>
+                  </div>
+                ) : (
+                  <form onSubmit={handleFeedbackSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                    <div style={{ textAlign: 'center', marginBottom: '0.5rem' }}>
+                      <h3 style={{ margin: '0 0 0.25rem 0', fontSize: '1.15rem' }}>Send Private Feedback</h3>
+                      <p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--secondary-foreground)' }}>
+                        Tell us what went wrong so we can resolve it for you personally.
+                      </p>
+                    </div>
+
+                    {feedbackError && (
+                      <div style={{ padding: '0.6rem 1rem', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '0.5rem', color: '#ef4444', fontSize: '0.875rem' }}>
+                        {feedbackError}
+                      </div>
+                    )}
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                      <label style={{ fontSize: '0.875rem', fontWeight: 600 }}>Your Name <span style={{ color: '#ef4444' }}>*</span></label>
+                      <input 
+                        type="text"
+                        value={feedbackName}
+                        onChange={(e) => setFeedbackName(e.target.value)}
+                        placeholder="John Doe"
+                        required
+                        style={{
+                          width: '100%', padding: '0.75rem 1rem', borderRadius: 'var(--radius-md)',
+                          border: '1px solid var(--border)', background: 'var(--background)',
+                          color: 'var(--foreground)', fontSize: '0.95rem'
+                        }}
+                      />
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                      <label style={{ fontSize: '0.875rem', fontWeight: 600 }}>Phone Number or Email <span style={{ color: '#ef4444' }}>*</span></label>
+                      <input 
+                        type="text"
+                        value={feedbackContact}
+                        onChange={(e) => setFeedbackContact(e.target.value)}
+                        placeholder="name@example.com or +1 234 567 8900"
+                        required
+                        style={{
+                          width: '100%', padding: '0.75rem 1rem', borderRadius: 'var(--radius-md)',
+                          border: '1px solid var(--border)', background: 'var(--background)',
+                          color: 'var(--foreground)', fontSize: '0.95rem'
+                        }}
+                      />
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                      <label style={{ fontSize: '0.875rem', fontWeight: 600 }}>Describe Your Experience / Problem <span style={{ color: '#ef4444' }}>*</span></label>
+                      <textarea 
+                        value={feedbackMessage}
+                        onChange={(e) => setFeedbackMessage(e.target.value)}
+                        placeholder="Please detail what went wrong during your visit..."
+                        rows={4}
+                        required
+                        style={{
+                          width: '100%', padding: '0.75rem 1rem', borderRadius: 'var(--radius-md)',
+                          border: '1px solid var(--border)', background: 'var(--background)',
+                          color: 'var(--foreground)', fontSize: '0.95rem', resize: 'vertical'
+                        }}
+                      />
+                    </div>
+
+                    <button 
+                      type="submit"
+                      disabled={submittingFeedback}
+                      style={{ 
+                        padding: '0.9rem', fontSize: '1rem', background: 'linear-gradient(90deg, var(--primary), var(--accent))',
+                        color: 'white', border: 'none', borderRadius: '2rem', fontWeight: 600, cursor: 'pointer',
+                        boxShadow: '0 10px 25px -5px color-mix(in srgb, var(--primary) 50%, transparent)',
+                        opacity: submittingFeedback ? 0.7 : 1, transition: 'transform 0.2s'
+                      }}
+                    >
+                      {submittingFeedback ? "Submitting Feedback..." : "Submit Private Feedback"}
+                    </button>
+                  </form>
+                )}
+              </div>
             )}
          </div>
 
