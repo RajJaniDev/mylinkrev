@@ -1,26 +1,42 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
 
+function isValidContact(contact: string): boolean {
+  const trimmed = contact.trim();
+  if (!trimmed) return false;
+
+  // 1. Email validation
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (emailRegex.test(trimmed)) return true;
+
+  // 2. Phone number validation (must contain valid phone characters and 7 to 15 digits)
+  const phoneRegex = /^[+]?[\d\s\-()]{7,18}$/;
+  const digitsOnly = trimmed.replace(/\D/g, "");
+  if (phoneRegex.test(trimmed) && digitsOnly.length >= 7 && digitsOnly.length <= 15) {
+    return true;
+  }
+
+  return false;
+}
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { slug, name, contact, message, stars } = body;
+    const { slug, businessId, name, contact, message, stars } = body;
 
-    // Strict validation for required fields
-    if (!slug || typeof slug !== "string") {
-      return NextResponse.json({ error: "Business identifier (slug) is required." }, { status: 400 });
-    }
-
+    // Validation for required fields
     if (!name || typeof name !== "string" || name.trim().length < 2) {
-      return NextResponse.json({ error: "Please enter your name." }, { status: 400 });
+      return NextResponse.json({ error: "Please enter your valid name." }, { status: 400 });
     }
 
-    if (!contact || typeof contact !== "string" || contact.trim().length < 5) {
-      return NextResponse.json({ error: "Please enter a valid email address or phone number." }, { status: 400 });
+    if (!contact || typeof contact !== "string" || !isValidContact(contact)) {
+      return NextResponse.json({ 
+        error: "Please enter a valid phone number or email address (e.g. name@example.com or +1 234 567 8900)." 
+      }, { status: 400 });
     }
 
-    if (!message || typeof message !== "string" || message.trim().length < 5) {
-      return NextResponse.json({ error: "Please describe your experience or problem in detail." }, { status: 400 });
+    if (!message || typeof message !== "string" || message.trim().length < 3) {
+      return NextResponse.json({ error: "Please describe your experience or problem." }, { status: 400 });
     }
 
     const numericStars = Number(stars);
@@ -28,14 +44,43 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Valid star rating is required." }, { status: 400 });
     }
 
-    // Fetch the business by slug
-    const { data: business, error: fetchError } = await supabase
-      .from("businesses")
-      .select("id, feedbacks, social_links")
-      .eq("slug", slug)
-      .single();
+    // Fetch the business by businessId or slug
+    let business: any = null;
+    let fetchError: any = null;
+
+    if (businessId) {
+      const res = await supabase
+        .from("businesses")
+        .select("id, feedbacks, social_links")
+        .eq("id", businessId)
+        .single();
+      business = res.data;
+      fetchError = res.error;
+    }
+
+    if (!business && slug) {
+      const cleanSlug = decodeURIComponent(String(slug)).trim();
+      const res = await supabase
+        .from("businesses")
+        .select("id, feedbacks, social_links")
+        .ilike("slug", cleanSlug)
+        .single();
+      business = res.data;
+      fetchError = res.error;
+
+      if (!business) {
+        const exactRes = await supabase
+          .from("businesses")
+          .select("id, feedbacks, social_links")
+          .eq("slug", cleanSlug)
+          .single();
+        business = exactRes.data;
+        fetchError = exactRes.error;
+      }
+    }
 
     if (fetchError || !business) {
+      console.error("Business not found in feedback route:", { businessId, slug, fetchError });
       return NextResponse.json({ error: "Business not found." }, { status: 404 });
     }
 
@@ -55,13 +100,13 @@ export async function POST(req: NextRequest) {
 
     const updatedFeedbacks = [newFeedback, ...existingFeedbacks];
 
-    // Primary attempt: update 'feedbacks' column on 'businesses' table
+    // Primary update attempt on 'feedbacks' column
     const { error: updateError } = await supabase
       .from("businesses")
       .update({ feedbacks: updatedFeedbacks })
       .eq("id", business.id);
 
-    // Fallback safeguard: if column update fails, save into social_links.feedbacks JSONB
+    // Fallback update on social_links.feedbacks
     if (updateError) {
       console.warn("Updating 'feedbacks' column failed, saving into social_links.feedbacks fallback:", updateError.message);
       const updatedSocials = {

@@ -20,9 +20,28 @@ function getClientFallbackReview(stars: number, businessName?: string): string {
   return selectedTemplate.replace(/BusinessName/g, nameToUse);
 }
 
+function isValidContact(contact: string): boolean {
+  const trimmed = contact.trim();
+  if (!trimmed) return false;
+
+  // 1. Email format check
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (emailRegex.test(trimmed)) return true;
+
+  // 2. Phone number format check (digits, optional +, spaces, dashes, parens)
+  const phoneRegex = /^[+]?[\d\s\-()]{7,18}$/;
+  const digitsOnly = trimmed.replace(/\D/g, "");
+  if (phoneRegex.test(trimmed) && digitsOnly.length >= 7 && digitsOnly.length <= 15) {
+    return true;
+  }
+
+  return false;
+}
+
 export default function RateBusinessPage() {
   const params = useParams();
-  const slug = params.slug as string;
+  const rawSlug = params.slug as string;
+  const slug = rawSlug ? decodeURIComponent(rawSlug) : "";
   const [business, setBusiness] = useState<any>(null);
   const [stars, setStars] = useState<number>(0);
   
@@ -45,9 +64,21 @@ export default function RateBusinessPage() {
     supabase
       .from("businesses")
       .select("*")
-      .eq("slug", slug)
+      .ilike("slug", slug)
       .single()
-      .then(({ data }) => setBusiness(data));
+      .then(({ data, error }) => {
+        if (data) {
+          setBusiness(data);
+        } else {
+          // Fallback exact match query
+          supabase
+            .from("businesses")
+            .select("*")
+            .eq("slug", slug)
+            .single()
+            .then(({ data: fallbackData }) => setBusiness(fallbackData));
+        }
+      });
   }, [slug]);
 
   const handleStarClick = async (rating: number) => {
@@ -73,7 +104,7 @@ export default function RateBusinessPage() {
           businessName: business?.name,
           businessDescription: business?.description,
           stars: targetStars,
-          slug: slug
+          slug: business?.slug || slug
         })
       });
 
@@ -102,18 +133,20 @@ export default function RateBusinessPage() {
     e.preventDefault();
     setFeedbackError("");
 
-    // Input validations
-    if (!feedbackName.trim()) {
+    // Name validation
+    if (!feedbackName.trim() || feedbackName.trim().length < 2) {
       setFeedbackError("Please enter your name.");
       return;
     }
 
-    if (!feedbackContact.trim()) {
-      setFeedbackError("Please enter your phone number or email address.");
+    // Phone / Email validation
+    if (!isValidContact(feedbackContact)) {
+      setFeedbackError("Please enter a valid phone number or email address (e.g. name@example.com or +1 234 567 8900).");
       return;
     }
 
-    if (!feedbackMessage.trim()) {
+    // Message validation
+    if (!feedbackMessage.trim() || feedbackMessage.trim().length < 3) {
       setFeedbackError("Please describe your experience or problem.");
       return;
     }
@@ -125,7 +158,8 @@ export default function RateBusinessPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          slug,
+          businessId: business?.id,
+          slug: business?.slug || slug,
           name: feedbackName,
           contact: feedbackContact,
           message: feedbackMessage,
@@ -292,7 +326,7 @@ export default function RateBusinessPage() {
                     </div>
 
                     {feedbackError && (
-                      <div style={{ padding: '0.6rem 1rem', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '0.5rem', color: '#ef4444', fontSize: '0.875rem' }}>
+                      <div style={{ padding: '0.66rem 1rem', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '0.5rem', color: '#ef4444', fontSize: '0.875rem', fontWeight: 500 }}>
                         {feedbackError}
                       </div>
                     )}
