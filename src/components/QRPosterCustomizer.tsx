@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect } from "react";
 
 export interface QRTemplateConfig {
   templateId: string;
+  sizeId?: string;
   businessName: string;
   businessLogo?: string;
   reviewLink: string;
@@ -64,6 +65,45 @@ export const PREDEFINED_TEMPLATES = [
   }
 ];
 
+export const PRINT_SIZES = [
+  {
+    id: "a4",
+    name: "A4 Poster",
+    dimensions: "210 × 297 mm",
+    aspectRatio: "3/4",
+    tag: "Default Poster",
+    widthPx: 1500,
+    heightPx: 2000
+  },
+  {
+    id: "counter_standee",
+    name: "Counter Standee",
+    dimensions: '4" × 6" (10 × 15 cm)',
+    aspectRatio: "2/3",
+    tag: "Tabletop Display",
+    widthPx: 1200,
+    heightPx: 1800
+  },
+  {
+    id: "square_desk",
+    name: "Square Desk Card",
+    dimensions: '4" × 4" (10 × 10 cm)',
+    aspectRatio: "1/1",
+    tag: "Desk / Table Stand",
+    widthPx: 1400,
+    heightPx: 1400
+  },
+  {
+    id: "business_card",
+    name: "Handout Card",
+    dimensions: '3.5" × 2" (8.9 × 5.1 cm)',
+    aspectRatio: "3.5/2",
+    tag: "Compact Card",
+    widthPx: 1400,
+    heightPx: 800
+  }
+];
+
 export const COLOR_PALETTES = [
   { name: "Google Blue", value: "#1a73e8" },
   { name: "Royal Indigo", value: "#4f46e5" },
@@ -84,6 +124,7 @@ export function QRPosterCustomizer({
 }: QRPosterCustomizerProps) {
   // Form State
   const [templateId, setTemplateId] = useState<string>(initialConfig?.templateId || "google_arch");
+  const [sizeId, setSizeId] = useState<string>(initialConfig?.sizeId || "a4");
   const [businessName, setBusinessName] = useState<string>(initialConfig?.businessName || "Galaxy Salon");
   const [businessLogo, setBusinessLogo] = useState<string>(initialConfig?.businessLogo || "");
   const [reviewLink, setReviewLink] = useState<string>(initialConfig?.reviewLink || "https://g.page/r/example-review");
@@ -101,9 +142,13 @@ export function QRPosterCustomizer({
 
   const hiddenCanvasRef = useRef<HTMLCanvasElement | null>(null);
 
+  // Get active size details
+  const activeSize = PRINT_SIZES.find(s => s.id === sizeId) || PRINT_SIZES[0];
+
   // Sync state when initialConfig updates
   useEffect(() => {
     if (initialConfig?.templateId) setTemplateId(initialConfig.templateId);
+    if (initialConfig?.sizeId) setSizeId(initialConfig.sizeId);
     if (initialConfig?.businessName) setBusinessName(initialConfig.businessName);
     if (initialConfig?.businessLogo !== undefined) setBusinessLogo(initialConfig.businessLogo);
     if (initialConfig?.reviewLink) setReviewLink(initialConfig.reviewLink);
@@ -153,6 +198,7 @@ export function QRPosterCustomizer({
     try {
       await onSave({
         templateId,
+        sizeId,
         businessName,
         businessLogo,
         reviewLink,
@@ -185,9 +231,9 @@ export function QRPosterCustomizer({
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    // High resolution A4 aspect canvas (1500 x 2000 px)
-    const W = 1500;
-    const H = 2000;
+    // Use dimensions of the selected size
+    const W = activeSize.widthPx;
+    const H = activeSize.heightPx;
     canvas.width = W;
     canvas.height = H;
 
@@ -227,120 +273,147 @@ export function QRPosterCustomizer({
       };
 
       if (templateId === "google_arch") {
-        ctx.fillStyle = "#ea4335"; ctx.fillRect(0, 0, 375, 140);
-        ctx.fillStyle = "#fbbc05"; ctx.fillRect(375, 0, 375, 140);
-        ctx.fillStyle = "#34a853"; ctx.fillRect(750, 0, 375, 140);
-        ctx.fillStyle = "#4285f4"; ctx.fillRect(1125, 0, 375, 140);
+        ctx.fillStyle = "#ea4335"; ctx.fillRect(0, 0, W * 0.25, H * 0.07);
+        ctx.fillStyle = "#fbbc05"; ctx.fillRect(W * 0.25, 0, W * 0.25, H * 0.07);
+        ctx.fillStyle = "#34a853"; ctx.fillRect(W * 0.5, 0, W * 0.25, H * 0.07);
+        ctx.fillStyle = "#4285f4"; ctx.fillRect(W * 0.75, 0, W * 0.25, H * 0.07);
 
         ctx.fillStyle = "#ffffff";
-        ctx.beginPath(); ctx.arc(750, 140, 110, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(W / 2, H * 0.07, W * 0.075, 0, Math.PI * 2); ctx.fill();
         ctx.shadowColor = "rgba(0,0,0,0.1)"; ctx.shadowBlur = 15; ctx.lineWidth = 6; ctx.strokeStyle = "#ffffff"; ctx.stroke();
         ctx.shadowColor = "transparent";
 
-        ctx.fillStyle = "#4285f4"; ctx.font = "900 100px sans-serif"; ctx.textAlign = "center"; ctx.fillText("G", 750, 175);
-        ctx.fillStyle = "#fbbc05"; ctx.font = "60px sans-serif"; ctx.fillText("★ ★ ★ ★ ★", 750, 310);
+        ctx.fillStyle = "#4285f4"; ctx.font = `900 ${Math.round(W * 0.065)}px sans-serif`; ctx.textAlign = "center"; ctx.fillText("G", W / 2, H * 0.088);
+        ctx.fillStyle = "#fbbc05"; ctx.font = `${Math.round(W * 0.04)}px sans-serif`; ctx.fillText("★ ★ ★ ★ ★", W / 2, H * 0.155);
 
-        ctx.fillStyle = "#0f172a"; ctx.font = "800 68px sans-serif"; ctx.fillText(headline.toUpperCase(), 750, 420);
+        ctx.fillStyle = "#0f172a"; ctx.font = `800 ${Math.round(W * 0.045)}px sans-serif`; ctx.fillText(headline.toUpperCase(), W / 2, H * 0.21);
 
-        drawRoundedRect(250, 480, 1000, 130, 24, "#f8fafc", "#e2e8f0", 4);
-        ctx.fillStyle = accentColor; ctx.font = "800 58px sans-serif"; ctx.fillText(businessName, 750, 565);
+        drawRoundedRect(W * 0.15, H * 0.24, W * 0.7, H * 0.065, 24, "#f8fafc", "#e2e8f0", 4);
+        ctx.fillStyle = accentColor; ctx.font = `800 ${Math.round(W * 0.04)}px sans-serif`; ctx.fillText(businessName, W / 2, H * 0.285);
 
-        drawRoundedRect(425, 660, 650, 650, 32, "#ffffff", "#e2e8f0", 4);
-        ctx.drawImage(qrImg, 475, 710, 550, 550);
+        const qrBoxSize = Math.min(W * 0.45, H * 0.35);
+        const qrBoxX = (W - qrBoxSize) / 2;
+        const qrBoxY = H * 0.33;
 
-        ctx.lineWidth = 14; ctx.lineCap = "round";
-        ctx.strokeStyle = "#ea4335"; ctx.beginPath(); ctx.moveTo(400, 710); ctx.lineTo(400, 660); ctx.lineTo(450, 660); ctx.stroke();
-        ctx.strokeStyle = "#4285f4"; ctx.beginPath(); ctx.moveTo(1050, 660); ctx.lineTo(1100, 660); ctx.lineTo(1100, 710); ctx.stroke();
-        ctx.strokeStyle = "#fbbc05"; ctx.beginPath(); ctx.moveTo(400, 1260); ctx.lineTo(400, 1310); ctx.lineTo(450, 1310); ctx.stroke();
-        ctx.strokeStyle = "#34a853"; ctx.beginPath(); ctx.moveTo(1050, 1310); ctx.lineTo(1100, 1310); ctx.lineTo(1100, 1260); ctx.stroke();
+        drawRoundedRect(qrBoxX, qrBoxY, qrBoxSize, qrBoxSize, 32, "#ffffff", "#e2e8f0", 4);
+        ctx.drawImage(qrImg, qrBoxX + 25, qrBoxY + 25, qrBoxSize - 50, qrBoxSize - 50);
 
-        ctx.fillStyle = "#475569"; ctx.font = "500 36px sans-serif"; ctx.fillText(subheadline, 750, 1420);
-        ctx.fillStyle = "#64748b"; ctx.font = "700 32px sans-serif"; ctx.fillText("powered by myrevlink.in", 750, 1880);
+        // Corner accents
+        ctx.lineWidth = 12; ctx.lineCap = "round";
+        ctx.strokeStyle = "#ea4335"; ctx.beginPath(); ctx.moveTo(qrBoxX - 15, qrBoxY + 40); ctx.lineTo(qrBoxX - 15, qrBoxY - 15); ctx.lineTo(qrBoxX + 40, qrBoxY - 15); ctx.stroke();
+        ctx.strokeStyle = "#4285f4"; ctx.beginPath(); ctx.moveTo(qrBoxX + qrBoxSize - 40, qrBoxY - 15); ctx.lineTo(qrBoxX + qrBoxSize + 15, qrBoxY - 15); ctx.lineTo(qrBoxX + qrBoxSize + 15, qrBoxY + 40); ctx.stroke();
+        ctx.strokeStyle = "#fbbc05"; ctx.beginPath(); ctx.moveTo(qrBoxX - 15, qrBoxY + qrBoxSize - 40); ctx.lineTo(qrBoxX - 15, qrBoxY + qrBoxSize + 15); ctx.lineTo(qrBoxX + 40, qrBoxY + qrBoxSize + 15); ctx.stroke();
+        ctx.strokeStyle = "#34a853"; ctx.beginPath(); ctx.moveTo(qrBoxX + qrBoxSize - 40, qrBoxY + qrBoxSize + 15); ctx.lineTo(qrBoxX + qrBoxSize + 15, qrBoxY + qrBoxSize + 15); ctx.lineTo(qrBoxX + qrBoxSize + 15, qrBoxY + qrBoxSize - 40); ctx.stroke();
+
+        ctx.fillStyle = "#475569"; ctx.font = `500 ${Math.round(W * 0.024)}px sans-serif`; ctx.fillText(subheadline, W / 2, H * 0.78);
+        ctx.fillStyle = "#64748b"; ctx.font = `700 ${Math.round(W * 0.022)}px sans-serif`; ctx.fillText("powered by myrevlink.in", W / 2, H * 0.94);
 
       } else if (templateId === "google_ring") {
-        ctx.lineWidth = 24;
-        ctx.beginPath(); ctx.arc(750, 260, 180, 0, Math.PI * 0.5); ctx.strokeStyle = "#fbbc05"; ctx.stroke();
-        ctx.beginPath(); ctx.arc(750, 260, 180, Math.PI * 0.5, Math.PI); ctx.strokeStyle = "#34a853"; ctx.stroke();
-        ctx.beginPath(); ctx.arc(750, 260, 180, Math.PI, Math.PI * 1.5); ctx.strokeStyle = "#4285f4"; ctx.stroke();
-        ctx.beginPath(); ctx.arc(750, 260, 180, Math.PI * 1.5, Math.PI * 2); ctx.strokeStyle = "#ea4335"; ctx.stroke();
+        const ringR = Math.min(W, H) * 0.12;
+        ctx.lineWidth = 20;
+        ctx.beginPath(); ctx.arc(W / 2, H * 0.15, ringR, 0, Math.PI * 0.5); ctx.strokeStyle = "#fbbc05"; ctx.stroke();
+        ctx.beginPath(); ctx.arc(W / 2, H * 0.15, ringR, Math.PI * 0.5, Math.PI); ctx.strokeStyle = "#34a853"; ctx.stroke();
+        ctx.beginPath(); ctx.arc(W / 2, H * 0.15, ringR, Math.PI, Math.PI * 1.5); ctx.strokeStyle = "#4285f4"; ctx.stroke();
+        ctx.beginPath(); ctx.arc(W / 2, H * 0.15, ringR, Math.PI * 1.5, Math.PI * 2); ctx.strokeStyle = "#ea4335"; ctx.stroke();
 
-        ctx.fillStyle = "#1e293b"; ctx.font = "500 42px sans-serif"; ctx.textAlign = "center"; ctx.fillText("Review us on", 750, 240);
-        ctx.font = "900 76px sans-serif"; ctx.fillStyle = "#4285f4"; ctx.fillText("Google", 750, 310);
+        ctx.fillStyle = "#1e293b"; ctx.font = `500 ${Math.round(W * 0.028)}px sans-serif`; ctx.textAlign = "center"; ctx.fillText("Review us on", W / 2, H * 0.135);
+        ctx.font = `900 ${Math.round(W * 0.048)}px sans-serif`; ctx.fillStyle = "#4285f4"; ctx.fillText("Google", W / 2, H * 0.175);
 
-        ctx.fillStyle = accentColor; ctx.font = "800 64px sans-serif"; ctx.fillText(businessName, 750, 520);
+        ctx.fillStyle = accentColor; ctx.font = `800 ${Math.round(W * 0.042)}px sans-serif`; ctx.fillText(businessName, W / 2, H * 0.28);
 
-        drawRoundedRect(425, 600, 650, 650, 36, "#ffffff", "#cbd5e1", 4);
-        ctx.drawImage(qrImg, 475, 650, 550, 550);
+        const qrBoxSize = Math.min(W * 0.45, H * 0.38);
+        const qrBoxX = (W - qrBoxSize) / 2;
+        const qrBoxY = H * 0.33;
 
-        ctx.fillStyle = "#475569"; ctx.font = "500 34px sans-serif"; ctx.fillText(subheadline, 750, 1400);
+        drawRoundedRect(qrBoxX, qrBoxY, qrBoxSize, qrBoxSize, 36, "#ffffff", "#cbd5e1", 4);
+        ctx.drawImage(qrImg, qrBoxX + 25, qrBoxY + 25, qrBoxSize - 50, qrBoxSize - 50);
 
-        ctx.fillStyle = "#ea4335"; ctx.fillRect(150, 1750, 300, 20);
-        ctx.fillStyle = "#34a853"; ctx.fillRect(450, 1750, 300, 20);
-        ctx.fillStyle = "#4285f4"; ctx.fillRect(750, 1750, 300, 20);
-        ctx.fillStyle = "#fbbc05"; ctx.fillRect(1050, 1750, 300, 20);
+        ctx.fillStyle = "#475569"; ctx.font = `500 ${Math.round(W * 0.024)}px sans-serif`; ctx.fillText(subheadline, W / 2, H * 0.77);
 
-        ctx.fillStyle = "#64748b"; ctx.font = "700 32px sans-serif"; ctx.fillText("SMART QR by myrevlink.in", 750, 1880);
+        ctx.fillStyle = "#ea4335"; ctx.fillRect(W * 0.1, H * 0.88, W * 0.2, 16);
+        ctx.fillStyle = "#34a853"; ctx.fillRect(W * 0.3, H * 0.88, W * 0.2, 16);
+        ctx.fillStyle = "#4285f4"; ctx.fillRect(W * 0.5, H * 0.88, W * 0.2, 16);
+        ctx.fillStyle = "#fbbc05"; ctx.fillRect(W * 0.7, H * 0.88, W * 0.2, 16);
+
+        ctx.fillStyle = "#64748b"; ctx.font = `700 ${Math.round(W * 0.022)}px sans-serif`; ctx.fillText("SMART QR by myrevlink.in", W / 2, H * 0.95);
 
       } else if (templateId === "multi_connect") {
-        ctx.fillStyle = accentColor; ctx.font = "900 72px sans-serif"; ctx.textAlign = "center"; ctx.fillText(businessName.toUpperCase(), 750, 180);
-        ctx.fillStyle = "#ea4335"; ctx.font = "800 48px sans-serif"; ctx.fillText("CONNECT WITH US & LEAVE A REVIEW", 750, 260);
+        ctx.fillStyle = accentColor; ctx.font = `900 ${Math.round(W * 0.045)}px sans-serif`; ctx.textAlign = "center"; ctx.fillText(businessName.toUpperCase(), W / 2, H * 0.09);
+        ctx.fillStyle = "#ea4335"; ctx.font = `800 ${Math.round(W * 0.03)}px sans-serif`; ctx.fillText("CONNECT WITH US & LEAVE A REVIEW", W / 2, H * 0.135);
 
-        drawRoundedRect(200, 320, 1100, 1380, 40, "#fef3c7", "#fde68a", 4);
-        drawRoundedRect(450, 400, 600, 600, 32, "#ffffff", "#cbd5e1", 4);
-        ctx.drawImage(qrImg, 490, 440, 520, 520);
+        drawRoundedRect(W * 0.1, H * 0.16, W * 0.8, H * 0.74, 40, "#fef3c7", "#fde68a", 4);
+        
+        const qrBoxSize = Math.min(W * 0.4, H * 0.3);
+        const qrBoxX = (W - qrBoxSize) / 2;
+        const qrBoxY = H * 0.2;
 
-        drawRoundedRect(280, 1060, 940, 120, 20, "#ffffff");
-        ctx.fillStyle = "#1e293b"; ctx.font = "600 38px sans-serif"; ctx.fillText(`Phone: ${phone}`, 750, 1135);
+        drawRoundedRect(qrBoxX, qrBoxY, qrBoxSize, qrBoxSize, 32, "#ffffff", "#cbd5e1", 4);
+        ctx.drawImage(qrImg, qrBoxX + 20, qrBoxY + 20, qrBoxSize - 40, qrBoxSize - 40);
 
-        drawRoundedRect(280, 1220, 940, 120, 20, "#ffffff");
-        ctx.fillText(`Email: ${email}`, 750, 1295);
+        const pillY = H * 0.55;
+        const pillH = H * 0.07;
+        const pillGap = H * 0.085;
 
-        drawRoundedRect(280, 1380, 940, 120, 20, "#ffffff");
-        ctx.fillText(`Location: ${location}`, 750, 1455);
+        drawRoundedRect(W * 0.15, pillY, W * 0.7, pillH, 20, "#ffffff");
+        ctx.fillStyle = "#1e293b"; ctx.font = `600 ${Math.round(W * 0.025)}px sans-serif`; ctx.fillText(`Phone: ${phone}`, W / 2, pillY + pillH * 0.65);
 
-        ctx.fillStyle = "#64748b"; ctx.font = "700 32px sans-serif"; ctx.fillText("powered by myrevlink.in", 750, 1880);
+        drawRoundedRect(W * 0.15, pillY + pillGap, W * 0.7, pillH, 20, "#ffffff");
+        ctx.fillText(`Email: ${email}`, W / 2, pillY + pillGap + pillH * 0.65);
+
+        drawRoundedRect(W * 0.15, pillY + pillGap * 2, W * 0.7, pillH, 20, "#ffffff");
+        ctx.fillText(`Location: ${location}`, W / 2, pillY + pillGap * 2 + pillH * 0.65);
+
+        ctx.fillStyle = "#64748b"; ctx.font = `700 ${Math.round(W * 0.022)}px sans-serif`; ctx.fillText("powered by myrevlink.in", W / 2, H * 0.95);
 
       } else if (templateId === "premium_wave") {
-        ctx.fillStyle = "#0f172a"; ctx.font = "800 58px sans-serif"; ctx.textAlign = "center"; ctx.fillText("Scan QR & Leave us a Review on", 750, 200);
-        ctx.fillStyle = "#4285f4"; ctx.font = "900 84px sans-serif"; ctx.fillText("Google", 750, 300);
-        ctx.fillStyle = "#f59e0b"; ctx.font = "64px sans-serif"; ctx.fillText("★ ★ ★ ★ ★", 750, 390);
+        ctx.fillStyle = "#0f172a"; ctx.font = `800 ${Math.round(W * 0.038)}px sans-serif`; ctx.textAlign = "center"; ctx.fillText("Scan QR & Leave us a Review on", W / 2, H * 0.1);
+        ctx.fillStyle = "#4285f4"; ctx.font = `900 ${Math.round(W * 0.055)}px sans-serif`; ctx.fillText("Google", W / 2, H * 0.155);
+        ctx.fillStyle = "#f59e0b"; ctx.font = `${Math.round(W * 0.04)}px sans-serif`; ctx.fillText("★ ★ ★ ★ ★", W / 2, H * 0.2);
 
-        drawRoundedRect(425, 470, 650, 650, 48, "#ffffff", "#f59e0b", 8);
-        ctx.drawImage(qrImg, 475, 520, 550, 550);
+        const qrBoxSize = Math.min(W * 0.45, H * 0.35);
+        const qrBoxX = (W - qrBoxSize) / 2;
+        const qrBoxY = H * 0.24;
 
-        drawRoundedRect(600, 440, 300, 70, 35, "#f59e0b");
-        ctx.fillStyle = "#ffffff"; ctx.font = "700 36px sans-serif"; ctx.fillText("scan me", 750, 488);
+        drawRoundedRect(qrBoxX, qrBoxY, qrBoxSize, qrBoxSize, 48, "#ffffff", "#f59e0b", 8);
+        ctx.drawImage(qrImg, qrBoxX + 25, qrBoxY + 25, qrBoxSize - 50, qrBoxSize - 50);
 
-        ctx.fillStyle = "#1d4ed8"; ctx.font = "italic 700 68px 'Caveat', cursive, sans-serif"; ctx.fillText(thankyouNote, 750, 1220);
+        drawRoundedRect(W * 0.4, qrBoxY - 25, W * 0.2, 50, 25, "#f59e0b");
+        ctx.fillStyle = "#ffffff"; ctx.font = `700 ${Math.round(W * 0.024)}px sans-serif`; ctx.fillText("scan me", W / 2, qrBoxY + 8);
+
+        ctx.fillStyle = "#1d4ed8"; ctx.font = `italic 700 ${Math.round(W * 0.045)}px 'Caveat', cursive, sans-serif`; ctx.fillText(thankyouNote, W / 2, H * 0.65);
 
         ctx.fillStyle = "#2563eb";
-        ctx.beginPath(); ctx.moveTo(0, 1400); ctx.quadraticCurveTo(750, 1300, 1500, 1400); ctx.lineTo(1500, 2000); ctx.lineTo(0, 2000); ctx.closePath(); ctx.fill();
+        ctx.beginPath(); ctx.moveTo(0, H * 0.72); ctx.quadraticCurveTo(W / 2, H * 0.66, W, H * 0.72); ctx.lineTo(W, H); ctx.lineTo(0, H); ctx.closePath(); ctx.fill();
 
-        ctx.fillStyle = "#ffffff"; ctx.font = "900 64px sans-serif"; ctx.fillText(businessName, 750, 1650);
-        ctx.font = "600 36px sans-serif"; ctx.fillStyle = "rgba(255,255,255,0.9)"; ctx.fillText("powered by myrevlink.in", 750, 1740);
+        ctx.fillStyle = "#ffffff"; ctx.font = `900 ${Math.round(W * 0.042)}px sans-serif`; ctx.fillText(businessName, W / 2, H * 0.84);
+        ctx.font = `600 ${Math.round(W * 0.024)}px sans-serif`; ctx.fillStyle = "rgba(255,255,255,0.9)"; ctx.fillText("powered by myrevlink.in", W / 2, H * 0.9);
 
       } else if (templateId === "monochrome_star") {
-        ctx.fillStyle = "#ffffff"; ctx.beginPath(); ctx.arc(750, 200, 110, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = "#ffffff"; ctx.beginPath(); ctx.arc(W / 2, H * 0.1, W * 0.07, 0, Math.PI * 2); ctx.fill();
         ctx.lineWidth = 4; ctx.strokeStyle = "#0f172a"; ctx.stroke();
 
-        ctx.fillStyle = "#0f172a"; ctx.font = "700 32px sans-serif"; ctx.textAlign = "center"; ctx.fillText(businessName, 750, 210);
+        ctx.fillStyle = "#0f172a"; ctx.font = `700 ${Math.round(W * 0.024)}px sans-serif`; ctx.textAlign = "center"; ctx.fillText(businessName, W / 2, H * 0.105);
 
-        ctx.fillStyle = "#0f172a"; ctx.font = "700 64px 'Caveat', cursive, sans-serif"; ctx.fillText("thanks for your business!", 750, 380);
-        ctx.font = "500 38px sans-serif"; ctx.fillStyle = "#475569"; ctx.fillText("Impressed with our products or service?", 750, 450);
+        ctx.fillStyle = "#0f172a"; ctx.font = `700 ${Math.round(W * 0.045)}px 'Caveat', cursive, sans-serif`; ctx.fillText("thanks for your business!", W / 2, H * 0.2);
+        ctx.font = `500 ${Math.round(W * 0.026)}px sans-serif`; ctx.fillStyle = "#475569"; ctx.fillText("Impressed with our products or service?", W / 2, H * 0.24);
 
-        drawRoundedRect(425, 520, 650, 650, 36, "#ffffff", "#0f172a", 6);
-        ctx.drawImage(qrImg, 475, 570, 550, 550);
+        const qrBoxSize = Math.min(W * 0.45, H * 0.35);
+        const qrBoxX = (W - qrBoxSize) / 2;
+        const qrBoxY = H * 0.28;
 
-        ctx.fillStyle = "#0f172a"; ctx.font = "700 42px sans-serif"; ctx.fillText("Scan code & leave us a 5-star review on", 750, 1280);
-        ctx.fillStyle = "#4285f4"; ctx.font = "900 76px sans-serif"; ctx.fillText("Google", 750, 1370);
-        ctx.fillStyle = "#fbbc05"; ctx.font = "60px sans-serif"; ctx.fillText("★ ★ ★ ★ ★", 750, 1460);
+        drawRoundedRect(qrBoxX, qrBoxY, qrBoxSize, qrBoxSize, 36, "#ffffff", "#0f172a", 6);
+        ctx.drawImage(qrImg, qrBoxX + 25, qrBoxY + 25, qrBoxSize - 50, qrBoxSize - 50);
 
-        ctx.fillStyle = "#64748b"; ctx.font = "700 32px sans-serif"; ctx.fillText("powered by myrevlink.in", 750, 1880);
+        ctx.fillStyle = "#0f172a"; ctx.font = `700 ${Math.round(W * 0.028)}px sans-serif`; ctx.fillText("Scan code & leave us a 5-star review on", W / 2, H * 0.7);
+        ctx.fillStyle = "#4285f4"; ctx.font = `900 ${Math.round(W * 0.05)}px sans-serif`; ctx.fillText("Google", W / 2, H * 0.76);
+        ctx.fillStyle = "#fbbc05"; ctx.font = `${Math.round(W * 0.04)}px sans-serif`; ctx.fillText("★ ★ ★ ★ ★", W / 2, H * 0.82);
+
+        ctx.fillStyle = "#64748b"; ctx.font = `700 ${Math.round(W * 0.022)}px sans-serif`; ctx.fillText("powered by myrevlink.in", W / 2, H * 0.94);
       }
 
       const dataUrl = canvas.toDataURL("image/png");
       const a = document.createElement("a");
-      a.download = `${businessName.toLowerCase().replace(/\s+/g, "-")}-review-qr.png`;
+      a.download = `${businessName.toLowerCase().replace(/\s+/g, "-")}-${sizeId}-review-qr.png`;
       a.href = dataUrl;
       a.click();
     };
@@ -372,30 +445,30 @@ export function QRPosterCustomizer({
         {/* LEFT COLUMN: CONTROLS & FORM */}
         <div style={{ display: "flex", flexDirection: "column", gap: "1.75rem" }}>
           
-          {/* Template Selector Card */}
+          {/* Print / Display Size Selector Card */}
           <div style={{ background: "white", padding: "1.75rem", borderRadius: "1.25rem", border: "1px solid #e2e8f0", boxShadow: "0 10px 25px -5px rgba(0,0,0,0.03)" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.25rem" }}>
               <h3 style={{ fontSize: "1.15rem", color: "#0f172a", margin: 0, fontWeight: 800 }}>
-                Select Poster Template
+                Select Print & Display Size
               </h3>
               <span style={{ fontSize: "0.75rem", fontWeight: 700, background: "#eff6ff", color: "#2563eb", padding: "0.25rem 0.65rem", borderRadius: "1rem" }}>
-                5 Designs
+                {activeSize.name}
               </span>
             </div>
 
-            <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-              {PREDEFINED_TEMPLATES.map((tpl) => {
-                const active = templateId === tpl.id;
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem" }}>
+              {PRINT_SIZES.map((sz) => {
+                const active = sizeId === sz.id;
                 return (
                   <button
-                    key={tpl.id}
+                    key={sz.id}
                     type="button"
-                    onClick={() => setTemplateId(tpl.id)}
+                    onClick={() => setSizeId(sz.id)}
                     style={{
                       display: "flex",
-                      alignItems: "center",
-                      gap: "1rem",
-                      padding: "0.9rem 1.1rem",
+                      flexDirection: "column",
+                      gap: "0.25rem",
+                      padding: "0.85rem",
                       borderRadius: "0.85rem",
                       border: active ? "2px solid #2563eb" : "1px solid #cbd5e1",
                       background: active ? "#f0f6ff" : "#ffffff",
@@ -404,36 +477,110 @@ export function QRPosterCustomizer({
                       transition: "all 0.2s ease"
                     }}
                   >
-                    <div style={{
-                      width: "44px",
-                      height: "44px",
-                      borderRadius: "0.6rem",
-                      background: tpl.previewBg,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      color: "white",
-                      fontWeight: 800,
-                      fontSize: "0.9rem",
-                      boxShadow: "0 2px 8px rgba(0,0,0,0.15)"
-                    }}>
-                      QR
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%" }}>
+                      <span style={{ fontWeight: 800, fontSize: "0.9rem", color: active ? "#1e40af" : "#0f172a" }}>
+                        {sz.name}
+                      </span>
+                      {active && (
+                        <span style={{ color: "#2563eb", fontWeight: "bold", fontSize: "0.9rem" }}>✓</span>
+                      )}
                     </div>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontWeight: 700, fontSize: "0.95rem", color: active ? "#1e40af" : "#0f172a" }}>
-                        {tpl.name}
-                      </div>
-                      <div style={{ fontSize: "0.78rem", color: "#64748b", marginTop: "0.15rem" }}>
-                        {tpl.subtitle}
-                      </div>
+                    <div style={{ fontSize: "0.78rem", color: "#64748b", fontWeight: 600 }}>
+                      {sz.dimensions}
                     </div>
-                    {active && (
-                      <span style={{ color: "#2563eb", fontSize: "1.25rem", fontWeight: "bold" }}>✓</span>
-                    )}
+                    <div style={{ fontSize: "0.7rem", color: active ? "#2563eb" : "#94a3b8", fontWeight: 600, marginTop: "0.2rem" }}>
+                      {sz.tag}
+                    </div>
                   </button>
                 );
               })}
             </div>
+          </div>
+
+          {/* Template Selector Dropdown */}
+          <div style={{ background: "white", padding: "1.75rem", borderRadius: "1.25rem", border: "1px solid #e2e8f0", boxShadow: "0 10px 25px -5px rgba(0,0,0,0.03)" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
+              <h3 style={{ fontSize: "1.15rem", color: "#0f172a", margin: 0, fontWeight: 800 }}>
+                Select Poster Template
+              </h3>
+              <span style={{ fontSize: "0.75rem", fontWeight: 700, background: "#eff6ff", color: "#2563eb", padding: "0.25rem 0.65rem", borderRadius: "1rem" }}>
+                {PREDEFINED_TEMPLATES.length} Templates
+              </span>
+            </div>
+
+            <div style={{ position: "relative" }}>
+              <select
+                value={templateId}
+                onChange={(e) => setTemplateId(e.target.value)}
+                style={{
+                  width: "100%",
+                  padding: "0.9rem 2.5rem 0.9rem 1.1rem",
+                  borderRadius: "0.85rem",
+                  border: "2px solid #2563eb",
+                  background: "#f0f6ff",
+                  outline: "none",
+                  fontSize: "1rem",
+                  fontWeight: 700,
+                  color: "#1e40af",
+                  cursor: "pointer",
+                  appearance: "none",
+                  boxShadow: "0 2px 8px rgba(37, 99, 235, 0.1)"
+                }}
+              >
+                {PREDEFINED_TEMPLATES.map((tpl) => (
+                  <option key={tpl.id} value={tpl.id} style={{ background: "#ffffff", color: "#0f172a", padding: "0.5rem" }}>
+                    {tpl.name} ({tpl.subtitle})
+                  </option>
+                ))}
+              </select>
+
+              {/* Dropdown Chevron Icon */}
+              <div style={{ position: "absolute", right: "1.1rem", top: "50%", transform: "translateY(-50%)", pointerEvents: "none", color: "#2563eb" }}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+              </div>
+            </div>
+
+            {/* Active Template Badge Summary */}
+            {(() => {
+              const activeTpl = PREDEFINED_TEMPLATES.find(t => t.id === templateId) || PREDEFINED_TEMPLATES[0];
+              return (
+                <div style={{
+                  marginTop: "1rem",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "0.85rem",
+                  padding: "0.75rem 1rem",
+                  background: "#f8fafc",
+                  borderRadius: "0.75rem",
+                  border: "1px solid #e2e8f0"
+                }}>
+                  <div style={{
+                    width: "36px",
+                    height: "36px",
+                    borderRadius: "0.5rem",
+                    background: activeTpl.previewBg,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color: "white",
+                    fontWeight: 800,
+                    fontSize: "0.8rem"
+                  }}>
+                    QR
+                  </div>
+                  <div>
+                    <div style={{ fontWeight: 700, fontSize: "0.88rem", color: "#0f172a" }}>
+                      Active: {activeTpl.name}
+                    </div>
+                    <div style={{ fontSize: "0.76rem", color: "#64748b" }}>
+                      {activeTpl.subtitle}
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
           </div>
 
           {/* Customization Details Form */}
@@ -654,7 +801,9 @@ export function QRPosterCustomizer({
           
           <div style={{ display: "flex", justifyContent: "space-between", width: "100%", maxWidth: "440px", alignItems: "center" }}>
             <span style={{ fontWeight: 800, fontSize: "1.1rem", color: "#0f172a" }}>Live Preview</span>
-            <span style={{ fontSize: "0.8rem", color: "#64748b", fontWeight: 600 }}>A4 Aspect Ratio</span>
+            <span style={{ fontSize: "0.8rem", color: "#2563eb", fontWeight: 700, background: "#eff6ff", padding: "0.2rem 0.5rem", borderRadius: "0.4rem" }}>
+              {activeSize.name} ({activeSize.dimensions})
+            </span>
           </div>
 
           {/* PRINTABLE POSTER CONTAINER (Targeted by #printable-poster) */}
@@ -663,7 +812,7 @@ export function QRPosterCustomizer({
             style={{
               width: "100%",
               maxWidth: "440px",
-              aspectRatio: "3/4",
+              aspectRatio: activeSize.aspectRatio,
               background: templateId === "premium_wave" ? "#faf7f2" : "#ffffff",
               borderRadius: "1.5rem",
               border: `1px solid #e2e8f0`,
@@ -675,13 +824,14 @@ export function QRPosterCustomizer({
               position: "relative",
               overflow: "hidden",
               boxSizing: "border-box",
-              padding: templateId === "google_arch" ? "0 0 1.25rem 0" : "1.75rem 1.5rem 1.25rem 1.5rem"
+              padding: templateId === "google_arch" ? "0 0 1.25rem 0" : "1.75rem 1.5rem 1.25rem 1.5rem",
+              transition: "aspect-ratio 0.3s ease"
             }}
           >
             {/* TEMPLATE 1: GOOGLE ARCH CLASSIC */}
             {templateId === "google_arch" && (
               <>
-                <div style={{ width: "100%", height: "90px", display: "flex", position: "relative" }}>
+                <div style={{ width: "100%", height: "80px", display: "flex", position: "relative" }}>
                   <div style={{ flex: 1, background: "#ea4335" }} />
                   <div style={{ flex: 1, background: "#fbbc05" }} />
                   <div style={{ flex: 1, background: "#34a853" }} />
@@ -689,11 +839,11 @@ export function QRPosterCustomizer({
                   
                   <div style={{
                     position: "absolute",
-                    bottom: "-35px",
+                    bottom: "-30px",
                     left: "50%",
                     transform: "translateX(-50%)",
-                    width: "70px",
-                    height: "70px",
+                    width: "60px",
+                    height: "60px",
                     borderRadius: "50%",
                     background: "white",
                     boxShadow: "0 4px 12px rgba(0,0,0,0.12)",
@@ -702,7 +852,7 @@ export function QRPosterCustomizer({
                     justifyContent: "center",
                     border: "3px solid white"
                   }}>
-                    <svg width="42" height="42" viewBox="0 0 24 24">
+                    <svg width="36" height="36" viewBox="0 0 24 24">
                       <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
                       <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
                       <path fill="#FBBC05" d="M5.84 14.1c-.22-.66-.35-1.36-.35-2.1s.13-1.44.35-2.1V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.62z"/>
@@ -711,21 +861,21 @@ export function QRPosterCustomizer({
                   </div>
                 </div>
 
-                <div style={{ textAlign: "center", marginTop: "2rem", width: "100%", padding: "0 1.5rem" }}>
-                  <div style={{ color: "#fbbc05", fontSize: "1.2rem", letterSpacing: "2px", marginBottom: "0.2rem" }}>
+                <div style={{ textAlign: "center", marginTop: "1.75rem", width: "100%", padding: "0 1.25rem" }}>
+                  <div style={{ color: "#fbbc05", fontSize: "1.1rem", letterSpacing: "2px", marginBottom: "0.15rem" }}>
                     ★★★★★
                   </div>
-                  <h2 style={{ fontSize: "1.15rem", margin: 0, fontWeight: 800, color: "#0f172a", textTransform: "uppercase" }}>
+                  <h2 style={{ fontSize: sizeId === "business_card" ? "0.9rem" : "1.1rem", margin: 0, fontWeight: 800, color: "#0f172a", textTransform: "uppercase" }}>
                     {headline}
                   </h2>
                   <div style={{
-                    marginTop: "0.6rem",
+                    marginTop: "0.4rem",
                     background: "#f8fafc",
-                    padding: "0.5rem 1rem",
+                    padding: "0.4rem 0.8rem",
                     borderRadius: "0.6rem",
                     border: "1px solid #e2e8f0",
                     fontWeight: 800,
-                    fontSize: "1rem",
+                    fontSize: "0.95rem",
                     color: accentColor
                   }}>
                     {businessName}
@@ -733,28 +883,35 @@ export function QRPosterCustomizer({
                 </div>
 
                 {/* QR Code Container */}
-                <div style={{ position: "relative", padding: "0.6rem" }}>
-                  <div style={{ position: "absolute", top: 0, left: 0, width: "18px", height: "18px", borderTop: "4px solid #ea4335", borderLeft: "4px solid #ea4335", borderRadius: "4px 0 0 0" }} />
-                  <div style={{ position: "absolute", top: 0, right: 0, width: "18px", height: "18px", borderTop: "4px solid #4285f4", borderRight: "4px solid #4285f4", borderRadius: "0 4px 0 0" }} />
-                  <div style={{ position: "absolute", bottom: 0, left: 0, width: "18px", height: "18px", borderBottom: "4px solid #fbbc05", borderLeft: "4px solid #fbbc05", borderRadius: "0 0 0 4px" }} />
-                  <div style={{ position: "absolute", bottom: 0, right: 0, width: "18px", height: "18px", borderBottom: "4px solid #34a853", borderRight: "4px solid #34a853", borderRadius: "0 0 4px 0" }} />
+                <div style={{ position: "relative", padding: "0.5rem" }}>
+                  <div style={{ position: "absolute", top: 0, left: 0, width: "16px", height: "16px", borderTop: "4px solid #ea4335", borderLeft: "4px solid #ea4335", borderRadius: "4px 0 0 0" }} />
+                  <div style={{ position: "absolute", top: 0, right: 0, width: "16px", height: "16px", borderTop: "4px solid #4285f4", borderRight: "4px solid #4285f4", borderRadius: "0 4px 0 0" }} />
+                  <div style={{ position: "absolute", bottom: 0, left: 0, width: "16px", height: "16px", borderBottom: "4px solid #fbbc05", borderLeft: "4px solid #fbbc05", borderRadius: "0 0 0 4px" }} />
+                  <div style={{ position: "absolute", bottom: 0, right: 0, width: "16px", height: "16px", borderBottom: "4px solid #34a853", borderRight: "4px solid #34a853", borderRadius: "0 0 4px 0" }} />
 
-                  <div style={{ background: "white", padding: "0.6rem", borderRadius: "0.75rem", border: "1px solid #e2e8f0", boxShadow: "0 8px 20px rgba(0,0,0,0.06)" }}>
+                  <div style={{ background: "white", padding: "0.5rem", borderRadius: "0.75rem", border: "1px solid #e2e8f0", boxShadow: "0 8px 20px rgba(0,0,0,0.06)" }}>
                     <img
                       src={qrImageUrl}
                       alt="Review QR Code"
-                      style={{ width: "160px", height: "160px", display: "block", objectFit: "contain" }}
+                      style={{
+                        width: sizeId === "business_card" ? "90px" : sizeId === "square_desk" ? "120px" : "150px",
+                        height: sizeId === "business_card" ? "90px" : sizeId === "square_desk" ? "120px" : "150px",
+                        display: "block",
+                        objectFit: "contain"
+                      }}
                     />
                   </div>
                 </div>
 
-                <div style={{ textAlign: "center", padding: "0 1.5rem" }}>
-                  <p style={{ margin: 0, fontSize: "0.78rem", color: "#475569", lineHeight: 1.3 }}>
-                    {subheadline}
-                  </p>
-                </div>
+                {sizeId !== "business_card" && (
+                  <div style={{ textAlign: "center", padding: "0 1.25rem" }}>
+                    <p style={{ margin: 0, fontSize: "0.75rem", color: "#475569", lineHeight: 1.3 }}>
+                      {subheadline}
+                    </p>
+                  </div>
+                )}
 
-                <div style={{ fontSize: "0.72rem", color: "#64748b", fontWeight: 700, display: "flex", alignItems: "center", gap: "0.3rem" }}>
+                <div style={{ fontSize: "0.7rem", color: "#64748b", fontWeight: 700, display: "flex", alignItems: "center", gap: "0.3rem" }}>
                   <span>powered by</span>
                   <span style={{ color: "#2563eb" }}>myrevlink.in</span>
                 </div>
@@ -766,10 +923,10 @@ export function QRPosterCustomizer({
               <>
                 <div style={{ textAlign: "center", width: "100%" }}>
                   <div style={{
-                    width: "100px",
-                    height: "100px",
+                    width: "90px",
+                    height: "90px",
                     borderRadius: "50%",
-                    border: "6px solid transparent",
+                    border: "5px solid transparent",
                     borderTopColor: "#4285f4",
                     borderRightColor: "#ea4335",
                     borderBottomColor: "#fbbc05",
@@ -779,29 +936,36 @@ export function QRPosterCustomizer({
                     flexDirection: "column",
                     alignItems: "center",
                     justifyContent: "center",
-                    padding: "0.5rem"
+                    padding: "0.4rem"
                   }}>
-                    <span style={{ fontSize: "0.65rem", color: "#64748b", fontWeight: 600 }}>Review us on</span>
-                    <span style={{ fontSize: "1rem", color: "#4285f4", fontWeight: 900, marginTop: "-2px" }}>Google</span>
+                    <span style={{ fontSize: "0.6rem", color: "#64748b", fontWeight: 600 }}>Review us on</span>
+                    <span style={{ fontSize: "0.95rem", color: "#4285f4", fontWeight: 900, marginTop: "-2px" }}>Google</span>
                   </div>
 
-                  <h3 style={{ margin: "0.75rem 0 0 0", fontSize: "1.1rem", color: accentColor, fontWeight: 800 }}>
+                  <h3 style={{ margin: "0.5rem 0 0 0", fontSize: "1.05rem", color: accentColor, fontWeight: 800 }}>
                     {businessName}
                   </h3>
                 </div>
 
-                <div style={{ background: "white", padding: "0.8rem", borderRadius: "1rem", border: "1px solid #cbd5e1", boxShadow: "0 10px 25px rgba(0,0,0,0.06)" }}>
+                <div style={{ background: "white", padding: "0.7rem", borderRadius: "1rem", border: "1px solid #cbd5e1", boxShadow: "0 10px 25px rgba(0,0,0,0.06)" }}>
                   <img
                     src={qrImageUrl}
                     alt="Review QR Code"
-                    style={{ width: "160px", height: "160px", display: "block", objectFit: "contain" }}
+                    style={{
+                      width: sizeId === "business_card" ? "90px" : sizeId === "square_desk" ? "120px" : "150px",
+                      height: sizeId === "business_card" ? "90px" : sizeId === "square_desk" ? "120px" : "150px",
+                      display: "block",
+                      objectFit: "contain"
+                    }}
                   />
                 </div>
 
                 <div style={{ textAlign: "center", width: "100%" }}>
-                  <p style={{ margin: "0 0 0.75rem 0", fontSize: "0.78rem", color: "#475569" }}>
-                    {subheadline}
-                  </p>
+                  {sizeId !== "business_card" && (
+                    <p style={{ margin: "0 0 0.5rem 0", fontSize: "0.75rem", color: "#475569" }}>
+                      {subheadline}
+                    </p>
+                  )}
                   
                   <div style={{ display: "flex", height: "4px", width: "80%", margin: "0 auto", borderRadius: "2px", overflow: "hidden" }}>
                     <div style={{ flex: 1, background: "#ea4335" }} />
@@ -811,7 +975,7 @@ export function QRPosterCustomizer({
                   </div>
                 </div>
 
-                <div style={{ fontSize: "0.72rem", color: "#64748b", fontWeight: 700 }}>
+                <div style={{ fontSize: "0.7rem", color: "#64748b", fontWeight: 700 }}>
                   SMART QR by myrevlink.in
                 </div>
               </>
@@ -821,37 +985,44 @@ export function QRPosterCustomizer({
             {templateId === "multi_connect" && (
               <>
                 <div style={{ textAlign: "center", width: "100%" }}>
-                  <h2 style={{ fontSize: "1.2rem", margin: 0, fontWeight: 900, color: accentColor }}>
+                  <h2 style={{ fontSize: "1.15rem", margin: 0, fontWeight: 900, color: accentColor }}>
                     {businessName}
                   </h2>
-                  <div style={{ fontSize: "0.72rem", fontWeight: 800, color: "#ea4335", textTransform: "uppercase", marginTop: "0.25rem" }}>
+                  <div style={{ fontSize: "0.68rem", fontWeight: 800, color: "#ea4335", textTransform: "uppercase", marginTop: "0.2rem" }}>
                     CONNECT WITH US & LEAVE A REVIEW
                   </div>
                 </div>
 
-                <div style={{ width: "100%", background: "#fef3c7", padding: "1rem", borderRadius: "1rem", border: "1px solid #fde68a", display: "flex", flexDirection: "column", alignItems: "center", gap: "0.75rem" }}>
-                  <div style={{ background: "white", padding: "0.6rem", borderRadius: "0.75rem", border: "1px solid #e2e8f0" }}>
+                <div style={{ width: "100%", background: "#fef3c7", padding: "0.85rem", borderRadius: "1rem", border: "1px solid #fde68a", display: "flex", flexDirection: "column", alignItems: "center", gap: "0.6rem" }}>
+                  <div style={{ background: "white", padding: "0.5rem", borderRadius: "0.75rem", border: "1px solid #e2e8f0" }}>
                     <img
                       src={qrImageUrl}
                       alt="Review QR Code"
-                      style={{ width: "130px", height: "130px", display: "block", objectFit: "contain" }}
+                      style={{
+                        width: sizeId === "business_card" ? "80px" : "120px",
+                        height: sizeId === "business_card" ? "80px" : "120px",
+                        display: "block",
+                        objectFit: "contain"
+                      }}
                     />
                   </div>
 
-                  <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: "0.35rem", fontSize: "0.72rem", fontWeight: 600, color: "#1e293b" }}>
-                    <div style={{ background: "white", padding: "0.4rem 0.6rem", borderRadius: "0.4rem" }}>
+                  <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: "0.3rem", fontSize: "0.68rem", fontWeight: 600, color: "#1e293b" }}>
+                    <div style={{ background: "white", padding: "0.35rem 0.5rem", borderRadius: "0.4rem" }}>
                       Phone: {phone}
                     </div>
-                    <div style={{ background: "white", padding: "0.4rem 0.6rem", borderRadius: "0.4rem" }}>
+                    <div style={{ background: "white", padding: "0.35rem 0.5rem", borderRadius: "0.4rem" }}>
                       Email: {email}
                     </div>
-                    <div style={{ background: "white", padding: "0.4rem 0.6rem", borderRadius: "0.4rem" }}>
-                      Location: {location}
-                    </div>
+                    {sizeId !== "business_card" && (
+                      <div style={{ background: "white", padding: "0.35rem 0.5rem", borderRadius: "0.4rem" }}>
+                        Location: {location}
+                      </div>
+                    )}
                   </div>
                 </div>
 
-                <div style={{ fontSize: "0.72rem", color: "#64748b", fontWeight: 700 }}>
+                <div style={{ fontSize: "0.7rem", color: "#64748b", fontWeight: 700 }}>
                   powered by myrevlink.in
                 </div>
               </>
@@ -861,42 +1032,47 @@ export function QRPosterCustomizer({
             {templateId === "premium_wave" && (
               <>
                 <div style={{ textAlign: "center", width: "100%" }}>
-                  <h3 style={{ fontSize: "0.95rem", margin: 0, fontWeight: 800, color: "#0f172a" }}>
+                  <h3 style={{ fontSize: "0.9rem", margin: 0, fontWeight: 800, color: "#0f172a" }}>
                     Scan QR & Leave us a Review on
                   </h3>
-                  <div style={{ fontSize: "1.4rem", fontWeight: 900, color: "#4285f4", marginTop: "0.1rem" }}>
+                  <div style={{ fontSize: "1.3rem", fontWeight: 900, color: "#4285f4", marginTop: "0.1rem" }}>
                     Google
                   </div>
-                  <div style={{ color: "#f59e0b", fontSize: "1.1rem" }}>★★★★★</div>
+                  <div style={{ color: "#f59e0b", fontSize: "1rem" }}>★★★★★</div>
                 </div>
 
                 <div style={{ position: "relative" }}>
                   <div style={{
                     position: "absolute",
-                    top: "-12px",
+                    top: "-10px",
                     left: "50%",
                     transform: "translateX(-50%)",
                     background: "#f59e0b",
                     color: "white",
-                    fontSize: "0.7rem",
+                    fontSize: "0.65rem",
                     fontWeight: 800,
-                    padding: "0.2rem 0.8rem",
+                    padding: "0.15rem 0.7rem",
                     borderRadius: "1rem",
                     zIndex: 2,
                     boxShadow: "0 2px 6px rgba(0,0,0,0.15)"
                   }}>
                     scan me
                   </div>
-                  <div style={{ background: "white", padding: "0.8rem", borderRadius: "1.25rem", border: "4px solid #f59e0b", boxShadow: "0 10px 25px rgba(0,0,0,0.08)" }}>
+                  <div style={{ background: "white", padding: "0.7rem", borderRadius: "1.25rem", border: "4px solid #f59e0b", boxShadow: "0 10px 25px rgba(0,0,0,0.08)" }}>
                     <img
                       src={qrImageUrl}
                       alt="Review QR Code"
-                      style={{ width: "140px", height: "140px", display: "block", objectFit: "contain" }}
+                      style={{
+                        width: sizeId === "business_card" ? "85px" : sizeId === "square_desk" ? "110px" : "135px",
+                        height: sizeId === "business_card" ? "85px" : sizeId === "square_desk" ? "110px" : "135px",
+                        display: "block",
+                        objectFit: "contain"
+                      }}
                     />
                   </div>
                 </div>
 
-                <div style={{ fontFamily: "'Caveat', cursive, sans-serif", fontSize: "1.4rem", color: "#1d4ed8", fontWeight: 700 }}>
+                <div style={{ fontFamily: "'Caveat', cursive, sans-serif", fontSize: "1.3rem", color: "#1d4ed8", fontWeight: 700 }}>
                   {thankyouNote}
                 </div>
 
@@ -904,13 +1080,13 @@ export function QRPosterCustomizer({
                   width: "120%",
                   marginLeft: "-10%",
                   background: "#2563eb",
-                  padding: "1rem 1.5rem 0.75rem 1.5rem",
+                  padding: "0.85rem 1.25rem 0.65rem 1.25rem",
                   borderRadius: "50% 50% 0 0 / 20% 20% 0 0",
                   textAlign: "center",
                   color: "white"
                 }}>
-                  <div style={{ fontWeight: 800, fontSize: "1.05rem" }}>{businessName}</div>
-                  <div style={{ fontSize: "0.68rem", opacity: 0.9, marginTop: "0.2rem" }}>powered by myrevlink.in</div>
+                  <div style={{ fontWeight: 800, fontSize: "1rem" }}>{businessName}</div>
+                  <div style={{ fontSize: "0.65rem", opacity: 0.9, marginTop: "0.15rem" }}>powered by myrevlink.in</div>
                 </div>
               </>
             )}
@@ -920,15 +1096,15 @@ export function QRPosterCustomizer({
               <>
                 <div style={{ textAlign: "center", width: "100%" }}>
                   <div style={{
-                    width: "50px",
-                    height: "50px",
+                    width: "45px",
+                    height: "45px",
                     borderRadius: "50%",
                     border: "2px solid #0f172a",
-                    margin: "0 auto 0.4rem auto",
+                    margin: "0 auto 0.3rem auto",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    fontSize: "0.65rem",
+                    fontSize: "0.6rem",
                     fontWeight: 700,
                     color: "#0f172a",
                     overflow: "hidden"
@@ -940,33 +1116,38 @@ export function QRPosterCustomizer({
                     )}
                   </div>
 
-                  <div style={{ fontFamily: "'Caveat', cursive, sans-serif", fontSize: "1.35rem", color: "#0f172a", fontWeight: 700 }}>
+                  <div style={{ fontFamily: "'Caveat', cursive, sans-serif", fontSize: "1.25rem", color: "#0f172a", fontWeight: 700 }}>
                     {thankyouNote}
                   </div>
-                  <div style={{ fontSize: "0.75rem", color: "#475569", marginTop: "0.1rem" }}>
+                  <div style={{ fontSize: "0.7rem", color: "#475569", marginTop: "0.1rem" }}>
                     Impressed with our products or service?
                   </div>
                 </div>
 
-                <div style={{ background: "white", padding: "0.8rem", borderRadius: "1rem", border: "2px solid #0f172a", boxShadow: "0 8px 20px rgba(0,0,0,0.06)" }}>
+                <div style={{ background: "white", padding: "0.7rem", borderRadius: "1rem", border: "2px solid #0f172a", boxShadow: "0 8px 20px rgba(0,0,0,0.06)" }}>
                   <img
                     src={qrImageUrl}
                     alt="Review QR Code"
-                    style={{ width: "140px", height: "140px", display: "block", objectFit: "contain" }}
+                    style={{
+                      width: sizeId === "business_card" ? "85px" : sizeId === "square_desk" ? "110px" : "135px",
+                      height: sizeId === "business_card" ? "85px" : sizeId === "square_desk" ? "110px" : "135px",
+                      display: "block",
+                      objectFit: "contain"
+                    }}
                   />
                 </div>
 
                 <div style={{ textAlign: "center" }}>
-                  <div style={{ fontSize: "0.75rem", fontWeight: 700, color: "#0f172a" }}>
+                  <div style={{ fontSize: "0.7rem", fontWeight: 700, color: "#0f172a" }}>
                     Scan code to leave us a 5-star review on
                   </div>
-                  <div style={{ fontSize: "1.2rem", fontWeight: 900, color: "#4285f4", margin: "0.1rem 0" }}>
+                  <div style={{ fontSize: "1.15rem", fontWeight: 900, color: "#4285f4", margin: "0.1rem 0" }}>
                     Google
                   </div>
-                  <div style={{ color: "#fbbc05", fontSize: "1.1rem" }}>★★★★★</div>
+                  <div style={{ color: "#fbbc05", fontSize: "1rem" }}>★★★★★</div>
                 </div>
 
-                <div style={{ fontSize: "0.72rem", color: "#64748b", fontWeight: 700 }}>
+                <div style={{ fontSize: "0.7rem", color: "#64748b", fontWeight: 700 }}>
                   powered by myrevlink.in
                 </div>
               </>

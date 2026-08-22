@@ -32,6 +32,7 @@ export default async function ManageQRPage() {
 
   const initialConfig: Partial<QRTemplateConfig> = {
     templateId: savedConfig.templateId || "google_arch",
+    sizeId: savedConfig.sizeId || "a4",
     businessName: savedConfig.businessName || business.name,
     businessLogo: savedConfig.businessLogo || socials.profile_photo || "",
     reviewLink: savedConfig.reviewLink || reviewUrl,
