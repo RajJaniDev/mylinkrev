@@ -445,9 +445,9 @@ export function QRPosterCustomizer({
         {/* LEFT COLUMN: CONTROLS & FORM */}
         <div style={{ display: "flex", flexDirection: "column", gap: "1.75rem" }}>
           
-          {/* Print / Display Size Selector Card */}
+          {/* Print / Display Size Selector Dropdown */}
           <div style={{ background: "white", padding: "1.75rem", borderRadius: "1.25rem", border: "1px solid #e2e8f0", boxShadow: "0 10px 25px -5px rgba(0,0,0,0.03)" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.25rem" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
               <h3 style={{ fontSize: "1.15rem", color: "#0f172a", margin: 0, fontWeight: 800 }}>
                 Select Print & Display Size
               </h3>
@@ -456,44 +456,62 @@ export function QRPosterCustomizer({
               </span>
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem" }}>
-              {PRINT_SIZES.map((sz) => {
-                const active = sizeId === sz.id;
-                return (
-                  <button
-                    key={sz.id}
-                    type="button"
-                    onClick={() => setSizeId(sz.id)}
-                    style={{
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: "0.25rem",
-                      padding: "0.85rem",
-                      borderRadius: "0.85rem",
-                      border: active ? "2px solid #2563eb" : "1px solid #cbd5e1",
-                      background: active ? "#f0f6ff" : "#ffffff",
-                      cursor: "pointer",
-                      textAlign: "left",
-                      transition: "all 0.2s ease"
-                    }}
-                  >
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%" }}>
-                      <span style={{ fontWeight: 800, fontSize: "0.9rem", color: active ? "#1e40af" : "#0f172a" }}>
-                        {sz.name}
-                      </span>
-                      {active && (
-                        <span style={{ color: "#2563eb", fontWeight: "bold", fontSize: "0.9rem" }}>✓</span>
-                      )}
-                    </div>
-                    <div style={{ fontSize: "0.78rem", color: "#64748b", fontWeight: 600 }}>
-                      {sz.dimensions}
-                    </div>
-                    <div style={{ fontSize: "0.7rem", color: active ? "#2563eb" : "#94a3b8", fontWeight: 600, marginTop: "0.2rem" }}>
-                      {sz.tag}
-                    </div>
-                  </button>
-                );
-              })}
+            <div style={{ position: "relative" }}>
+              <select
+                value={sizeId}
+                onChange={(e) => setSizeId(e.target.value)}
+                style={{
+                  width: "100%",
+                  padding: "0.9rem 2.5rem 0.9rem 1.1rem",
+                  borderRadius: "0.85rem",
+                  border: "2px solid #2563eb",
+                  background: "#f0f6ff",
+                  outline: "none",
+                  fontSize: "1rem",
+                  fontWeight: 700,
+                  color: "#1e40af",
+                  cursor: "pointer",
+                  appearance: "none",
+                  boxShadow: "0 2px 8px rgba(37, 99, 235, 0.1)"
+                }}
+              >
+                {PRINT_SIZES.map((sz) => (
+                  <option key={sz.id} value={sz.id} style={{ background: "#ffffff", color: "#0f172a", padding: "0.5rem" }}>
+                    {sz.name} — {sz.dimensions} ({sz.tag})
+                  </option>
+                ))}
+              </select>
+
+              {/* Dropdown Chevron Icon */}
+              <div style={{ position: "absolute", right: "1.1rem", top: "50%", transform: "translateY(-50%)", pointerEvents: "none", color: "#2563eb" }}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+              </div>
+            </div>
+
+            {/* Active Size Summary */}
+            <div style={{
+              marginTop: "1rem",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              padding: "0.75rem 1rem",
+              background: "#f8fafc",
+              borderRadius: "0.75rem",
+              border: "1px solid #e2e8f0"
+            }}>
+              <div>
+                <div style={{ fontWeight: 700, fontSize: "0.88rem", color: "#0f172a" }}>
+                  Dimensions: {activeSize.dimensions}
+                </div>
+                <div style={{ fontSize: "0.76rem", color: "#64748b" }}>
+                  Use Case: {activeSize.tag}
+                </div>
+              </div>
+              <span style={{ fontSize: "0.75rem", fontWeight: 700, color: "#2563eb", background: "#ffffff", padding: "0.25rem 0.5rem", borderRadius: "0.4rem", border: "1px solid #cbd5e1" }}>
+                Ratio {activeSize.aspectRatio}
+              </span>
             </div>
           </div>
 
