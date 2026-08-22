@@ -14,6 +14,7 @@ export function DashboardNav({
   const pathname = usePathname();
 
   const isProfileActive = pathname === "/dashboard";
+  const isQrActive = pathname === "/dashboard/qr";
   const isLeadsActive = pathname === "/dashboard/leads";
   const isFeedbackActive = pathname === "/dashboard/feedback";
 
@@ -42,6 +43,23 @@ export function DashboardNav({
         }}
       >
         Profile Settings
+      </Link>
+      <Link 
+        href="/dashboard/qr" 
+        style={{
+          textDecoration: "none",
+          padding: "0.6rem 1.2rem",
+          borderRadius: "var(--radius-md)",
+          fontWeight: 600,
+          fontSize: "0.95rem",
+          transition: "all 0.2s",
+          background: isQrActive ? "linear-gradient(90deg, var(--primary), var(--accent))" : "rgba(255, 255, 255, 0.03)",
+          color: isQrActive ? "white" : "var(--secondary-foreground)",
+          border: isQrActive ? "none" : "1px solid var(--border)",
+          boxShadow: isQrActive ? "0 4px 12px rgba(59, 130, 246, 0.25)" : "none"
+        }}
+      >
+        Review QR Poster
       </Link>
       <Link 
         href="/dashboard/leads" 

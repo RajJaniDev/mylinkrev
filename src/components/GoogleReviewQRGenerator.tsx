@@ -29,7 +29,6 @@ export function GoogleReviewQRGenerator({ priceSymbol = "$", priceAmount = "5" }
     accentColor: "#1a73e8"
   });
 
-  // Clean local storage logic for paid state
   useEffect(() => {
     if (typeof window !== "undefined") {
       const paidState = localStorage.getItem(`mylinkrev_qr_paid_${currentConfig.businessName}`);
@@ -38,7 +37,6 @@ export function GoogleReviewQRGenerator({ priceSymbol = "$", priceAmount = "5" }
       } else {
         setIsPaid(false);
       }
-      // Load saved customization from localStorage if exists
       const savedConfig = localStorage.getItem("mylinkrev_qr_custom_config");
       if (savedConfig) {
         try {
@@ -49,7 +47,6 @@ export function GoogleReviewQRGenerator({ priceSymbol = "$", priceAmount = "5" }
     }
   }, [currentConfig.businessName]);
 
-  // Capture successful checkout redirect callback from Dodo Payments
   useEffect(() => {
     const success = searchParams.get("success");
     const paidBusiness = searchParams.get("businessName");
@@ -115,16 +112,13 @@ export function GoogleReviewQRGenerator({ priceSymbol = "$", priceAmount = "5" }
         flexWrap: "wrap",
         gap: "1rem"
       }}>
-        <div style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
-          <div style={{ fontSize: "1.5rem" }}>💡</div>
-          <div>
-            <h4 style={{ margin: 0, fontSize: "0.95rem", color: "#1e3a8a", fontWeight: 800 }}>
-              Design & Print Custom Google Review QR Posters
-            </h4>
-            <p style={{ margin: "0.25rem 0 0 0", fontSize: "0.85rem", color: "#1e40af" }}>
-              Select from 5 predefined templates, customize your branding & logo, and download high-res PNG posters.
-            </p>
-          </div>
+        <div>
+          <h4 style={{ margin: 0, fontSize: "0.95rem", color: "#1e3a8a", fontWeight: 800 }}>
+            Design & Print Custom Google Review QR Posters
+          </h4>
+          <p style={{ margin: "0.25rem 0 0 0", fontSize: "0.85rem", color: "#1e40af" }}>
+            Select from 5 predefined templates, customize your branding & logo, and download high-res PNG posters.
+          </p>
         </div>
 
         {!isPaid && (
@@ -143,7 +137,7 @@ export function GoogleReviewQRGenerator({ priceSymbol = "$", priceAmount = "5" }
               boxShadow: "0 4px 10px rgba(37, 99, 235, 0.2)"
             }}
           >
-            Unlock Unlimited Poster Downloads ({priceSymbol}{priceAmount})
+            Unlock Unlimited Downloads ({priceSymbol}{priceAmount})
           </button>
         )}
       </div>
@@ -182,8 +176,7 @@ export function GoogleReviewQRGenerator({ priceSymbol = "$", priceAmount = "5" }
             borderRadius: "1.5rem",
             boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
             overflow: "hidden",
-            border: "1px solid #e2e8f0",
-            animation: "fade-in 0.2s ease-out"
+            border: "1px solid #e2e8f0"
           }}>
             <div style={{ background: "#2563eb", color: "white", padding: "1.5rem", position: "relative" }}>
               <h3 style={{ margin: 0, fontSize: "1.25rem", fontWeight: 800 }}>Unlock High-Res PNG Poster</h3>
@@ -225,12 +218,11 @@ export function GoogleReviewQRGenerator({ priceSymbol = "$", priceAmount = "5" }
 
                 {paymentError && (
                   <div style={{ background: "#fef2f2", border: "1px solid #fee2e2", padding: "0.75rem", borderRadius: "0.5rem", color: "#b91c1c", fontSize: "0.8rem" }}>
-                    ⚠️ {paymentError}
+                    {paymentError}
                   </div>
                 )}
 
                 <div style={{ display: "flex", gap: "0.5rem", alignItems: "center", background: "#f8fafc", padding: "0.75rem", borderRadius: "0.5rem", border: "1px solid #e2e8f0", fontSize: "0.8rem", color: "#64748b" }}>
-                  <span>🛡️</span>
                   <span>Secure Checkout powered by Dodo Payments</span>
                 </div>
 
