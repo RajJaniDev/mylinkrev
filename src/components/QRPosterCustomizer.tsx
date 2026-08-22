@@ -195,7 +195,7 @@ export function QRPosterCustomizer({
 
     // Draw background based on template
     if (templateId === "premium_wave") {
-      ctx.fillStyle = "#faf7f2"; // Cream linen
+      ctx.fillStyle = "#faf7f2";
       ctx.fillRect(0, 0, W, H);
     } else {
       ctx.fillStyle = "#ffffff";
@@ -338,7 +338,6 @@ export function QRPosterCustomizer({
         ctx.fillStyle = "#64748b"; ctx.font = "700 32px sans-serif"; ctx.fillText("powered by myrevlink.in", 750, 1880);
       }
 
-      // Trigger File Download
       const dataUrl = canvas.toDataURL("image/png");
       const a = document.createElement("a");
       a.download = `${businessName.toLowerCase().replace(/\s+/g, "-")}-review-qr.png`;
@@ -348,7 +347,6 @@ export function QRPosterCustomizer({
 
     qrImg.onload = renderCanvasContent;
     qrImg.onerror = () => {
-      // Fallback if image fails to load
       renderCanvasContent();
     };
   };
@@ -363,24 +361,24 @@ export function QRPosterCustomizer({
   };
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "2.5rem", width: "100%" }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: "2rem", width: "100%" }}>
       
       {/* Hidden High-Res Canvas */}
       <canvas ref={hiddenCanvasRef} style={{ display: "none" }} />
 
-      {/* Main Grid: Left Controls & Right Live Preview */}
-      <div className="qr-generator-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "2.5rem" }}>
+      {/* Main Responsive Grid Layout */}
+      <div className="qr-customizer-container" style={{ display: "grid", gridTemplateColumns: "1.1fr 0.9fr", gap: "2.5rem", width: "100%", alignItems: "start" }}>
         
-        {/* LEFT COLUMN: CUSTOMIZATION CONTROLS */}
+        {/* LEFT COLUMN: CONTROLS & FORM */}
         <div style={{ display: "flex", flexDirection: "column", gap: "1.75rem" }}>
           
-          {/* Template Selector */}
+          {/* Template Selector Card */}
           <div style={{ background: "white", padding: "1.75rem", borderRadius: "1.25rem", border: "1px solid #e2e8f0", boxShadow: "0 10px 25px -5px rgba(0,0,0,0.03)" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.25rem" }}>
               <h3 style={{ fontSize: "1.15rem", color: "#0f172a", margin: 0, fontWeight: 800 }}>
                 Select Poster Template
               </h3>
-              <span style={{ fontSize: "0.75rem", fontWeight: 700, background: "#eff6ff", color: "#2563eb", padding: "0.25rem 0.6rem", borderRadius: "1rem" }}>
+              <span style={{ fontSize: "0.75rem", fontWeight: 700, background: "#eff6ff", color: "#2563eb", padding: "0.25rem 0.65rem", borderRadius: "1rem" }}>
                 5 Designs
               </span>
             </div>
@@ -397,7 +395,7 @@ export function QRPosterCustomizer({
                       display: "flex",
                       alignItems: "center",
                       gap: "1rem",
-                      padding: "0.85rem 1rem",
+                      padding: "0.9rem 1.1rem",
                       borderRadius: "0.85rem",
                       border: active ? "2px solid #2563eb" : "1px solid #cbd5e1",
                       background: active ? "#f0f6ff" : "#ffffff",
@@ -407,9 +405,9 @@ export function QRPosterCustomizer({
                     }}
                   >
                     <div style={{
-                      width: "42px",
-                      height: "42px",
-                      borderRadius: "0.5rem",
+                      width: "44px",
+                      height: "44px",
+                      borderRadius: "0.6rem",
                       background: tpl.previewBg,
                       display: "flex",
                       alignItems: "center",
@@ -438,7 +436,7 @@ export function QRPosterCustomizer({
             </div>
           </div>
 
-          {/* Form Inputs */}
+          {/* Customization Details Form */}
           <div style={{ background: "white", padding: "1.75rem", borderRadius: "1.25rem", border: "1px solid #e2e8f0", boxShadow: "0 10px 25px -5px rgba(0,0,0,0.03)" }}>
             <h3 style={{ fontSize: "1.15rem", color: "#0f172a", marginBottom: "1.25rem", fontWeight: 800 }}>
               Customize Details
@@ -567,7 +565,7 @@ export function QRPosterCustomizer({
                 </div>
               )}
 
-              {/* Accent Palette */}
+              {/* Accent Color Palette */}
               <div>
                 <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 700, color: "#475569", marginBottom: "0.5rem" }}>
                   Accent Theme Color
@@ -651,8 +649,8 @@ export function QRPosterCustomizer({
           </div>
         </div>
 
-        {/* RIGHT COLUMN: LIVE VISUAL POSTER PREVIEW */}
-        <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem", alignItems: "center" }}>
+        {/* RIGHT COLUMN: LIVE POSTER PREVIEW */}
+        <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem", alignItems: "center", position: "sticky", top: "2rem" }}>
           
           <div style={{ display: "flex", justifyContent: "space-between", width: "100%", maxWidth: "440px", alignItems: "center" }}>
             <span style={{ fontWeight: 800, fontSize: "1.1rem", color: "#0f172a" }}>Live Preview</span>
@@ -976,7 +974,7 @@ export function QRPosterCustomizer({
 
           </div>
 
-          {/* Action Download & Print Buttons (NO EMOJIS) */}
+          {/* Action Download & Print Buttons */}
           <div style={{ display: "flex", gap: "1rem", width: "100%", maxWidth: "440px" }}>
             <button
               type="button"

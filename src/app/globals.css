@@ -791,6 +791,13 @@ p {
   transform: rotateY(180deg);
 }
 
+@media (max-width: 1024px) {
+  .qr-customizer-container {
+    grid-template-columns: 1fr !important;
+    gap: 2rem !important;
+  }
+}
+
 
 
 
