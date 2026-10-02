@@ -4,6 +4,7 @@ import Image from "next/image";
 import { supabase } from "@/lib/supabase";
 import { headers } from "next/headers";
 import Footer from "@/components/Footer";
+import GmbHeroShowcase from "@/components/GmbHeroShowcase";
 
 export default async function Home() {
   const reqHeaders = await headers();
@@ -45,7 +46,33 @@ export default async function Home() {
           <Image src="/logo.png" alt="MyRevLink Logo" width={28} height={28} style={{ objectFit: 'contain' }} />
           <span style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#172554' }}>MyRevLink</span>
         </Link>
-        <div style={{ display: 'flex', gap: '2rem', alignItems: 'center', fontSize: '0.875rem', fontWeight: 600, color: '#4b5563' }} className="hidden sm:flex">
+        <div style={{ display: 'flex', gap: '1.75rem', alignItems: 'center', fontSize: '0.875rem', fontWeight: 600, color: '#4b5563' }} className="hidden sm:flex">
+          {/* Services Link with Core Flag */}
+          <div className="nav-dropdown-trigger" style={{ cursor: 'pointer', padding: '0.5rem 0' }}>
+            <Link 
+              href="/services/google-business-management" 
+              style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', color: '#1d4ed8', fontWeight: 700, textDecoration: 'none' }}
+            >
+              <span>Services</span>
+              <span style={{ fontSize: '0.65rem', background: '#dbeafe', color: '#1d4ed8', padding: '2px 6px', borderRadius: '9999px', textTransform: 'uppercase', fontWeight: 800 }}>Core</span>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </Link>
+            <div className="nav-dropdown-menu" style={{ width: '310px' }}>
+              <Link href="/services/google-business-management" className="nav-dropdown-item" style={{ borderBottom: '1px solid var(--border)' }}>
+                <div style={{ fontWeight: 800, fontSize: '0.875rem', color: '#1d4ed8' }}>Google Business Management</div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--muted)', marginTop: '0.2rem', fontWeight: 400 }}>Flagship GMB setup, weekly posts, 3-pack SEO & reviews</div>
+              </Link>
+              <Link href="/services/google-business-management#audit-form" className="nav-dropdown-item" style={{ borderBottom: '1px solid var(--border)' }}>
+                <div style={{ fontWeight: 700, fontSize: '0.875rem', color: 'var(--foreground)' }}>Free 7-Point GMB Audit</div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--muted)', marginTop: '0.15rem', fontWeight: 400 }}>Custom profile score & 30-day ranking roadmap</div>
+              </Link>
+              <Link href="/services/google-business-management#pricing" className="nav-dropdown-item">
+                <div style={{ fontWeight: 700, fontSize: '0.875rem', color: 'var(--foreground)' }}>Service Pricing Tiers</div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--muted)', marginTop: '0.15rem', fontWeight: 400 }}>Setup, Monthly Growth & Multi-Location plans</div>
+              </Link>
+            </div>
+          </div>
+
           <Link href="#features">Features</Link>
           <Link href="#how-it-works">How it Works</Link>
           
@@ -58,36 +85,36 @@ export default async function Home() {
             <div className="nav-dropdown-menu">
               <Link href="/tools/google-review-qr" className="nav-dropdown-item" style={{ borderBottom: '1px solid var(--border)' }}>
                 <div style={{ fontWeight: 700, fontSize: '0.875rem', color: 'var(--foreground)' }}>Generate AI Google Review QR</div>
-                <div style={{ fontSize: '0.75rem', color: 'var(--muted)', marginTop: '0.15rem', fontWeight: 400 }}>Printable A4 QR codes for just $5</div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--muted)', marginTop: '0.15rem', fontWeight: 400 }}>Printable A4 QR codes for counter displays</div>
               </Link>
               <Link href="/tools/digital-business-card" className="nav-dropdown-item">
                 <div style={{ fontWeight: 700, fontSize: '0.875rem', color: 'var(--foreground)' }}>Digital Business Card</div>
-                <div style={{ fontSize: '0.75rem', color: 'var(--muted)', marginTop: '0.15rem', fontWeight: 400 }}>Create & download cards for free</div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--muted)', marginTop: '0.15rem', fontWeight: 400 }}>Create & download digital profile cards</div>
               </Link>
             </div>
           </div>
 
-          <Link href="#pricing">Pricing</Link>
-          <Link href="#faq">FAQ</Link>
+          <Link href="/services/google-business-management#pricing">Pricing</Link>
+          <Link href="/services/google-business-management#faq">FAQ</Link>
         </div>
-        <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: '1.25rem', alignItems: 'center' }}>
           <Link href="/demo" style={{ fontSize: '0.875rem', fontWeight: 600, color: '#2563eb' }}>View Demo</Link>
           <Link href="/sign-in" style={{ fontSize: '0.875rem', fontWeight: 600, color: '#4b5563' }}>Login</Link>
-          <Link href="/sign-up">
-            <Button variant="primary" style={{ padding: '0.6rem 1.25rem', fontSize: '0.875rem', borderRadius: '8px', background: '#1d4ed8' }}>Get Started</Button>
+          <Link href="/services/google-business-management#audit-form">
+            <Button variant="primary" style={{ padding: '0.6rem 1.25rem', fontSize: '0.875rem', borderRadius: '8px', background: '#1d4ed8' }}>Free GMB Audit</Button>
           </Link>
         </div>
       </header>
       
-      {/* HERO SECTION */}
-      <section style={{ position: 'relative', padding: '12rem 1.5rem 6rem 1.5rem', overflow: 'hidden', background: 'linear-gradient(135deg, #eff4ff 0%, #ffffff 100%)' }}>
+      {/* REDESIGNED HERO SECTION: GOOGLE BUSINESS MANAGEMENT AS CORE SERVICE */}
+      <section style={{ position: 'relative', padding: '11rem 1.5rem 5rem 1.5rem', overflow: 'hidden', background: 'linear-gradient(135deg, #eff6ff 0%, #ffffff 50%, #f0fdf4 100%)' }}>
         <style dangerouslySetInnerHTML={{ __html: `
           .hero-mockup-wrapper {
             transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
           }
           .hero-mockup-wrapper:hover {
-            transform: translateY(-10px) scale(1.02) !important;
-            filter: drop-shadow(0 30px 45px rgba(15, 23, 42, 0.18)) !important;
+            transform: translateY(-8px) scale(1.01) !important;
+            filter: drop-shadow(0 30px 45px rgba(15, 23, 42, 0.16)) !important;
           }
         `}} />
         <div className="container hero-grid" style={{ position: 'relative', zIndex: 1 }}>
@@ -95,124 +122,113 @@ export default async function Home() {
           {/* LEFT COLUMN */}
           <div className="hero-content">
             
-            {/* Badges */}
-            <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'center', marginBottom: '1.5rem' }}>
-              <a href="https://www.producthunt.com/products/myrevlink?embed=true&utm_source=badge-featured&utm_medium=badge&utm_campaign=badge-myrevlink" target="_blank" rel="noopener noreferrer">
-                <img 
-                  src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1185494&theme=light&t=1782982543541" 
-                  alt="MyRevLink - Turn Happy Customers into 5-Star Reviews, Automatically | Product Hunt" 
-                  style={{ width: '220px', height: '48px', borderRadius: '8px' }} 
-                  width="220" 
-                  height="48" 
-                />
-              </a>
-              <a href="https://tools.cafe/p/tool-1784885868466" target="_blank" rel="noopener noreferrer">
-                <img 
-                  src="https://tools.cafe/b/light.svg" 
-                  alt="Listed on tools.cafe" 
-                  style={{ width: '160px', height: '48px', borderRadius: '8px' }} 
-                  width="160" 
-                  height="48" 
-                />
-              </a>
-            </div>
-
             {/* Badges Container */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap', marginBottom: '2rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: '#e0e7ff', color: '#3730a3', padding: '0.5rem 1rem', borderRadius: '9999px', fontSize: '0.75rem', fontWeight: 600 }}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                2,000+ Businesses Trust Us
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap', marginBottom: '1.5rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: '#dbeafe', color: '#1e40af', padding: '0.45rem 1rem', borderRadius: '9999px', fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#2563eb' }}></span>
+                Core Service: Google Business Management
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: '#fef3c7', color: '#d97706', padding: '0.5rem 1rem', borderRadius: '9999px', fontSize: '0.75rem', fontWeight: 700, border: '1px solid #fde68a' }}>
-                🔥 Free Launch Promo: 7 Review Credits
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: '#fef3c7', color: '#d97706', padding: '0.45rem 1rem', borderRadius: '9999px', fontSize: '0.75rem', fontWeight: 700, border: '1px solid #fde68a' }}>
+                🏆 #1 Google Map Pack Agency
               </div>
             </div>
 
-            <h1 className="hero-title">
-              Your Customers Say <span style={{ color: '#2563eb' }}>"Yes, I'll Leave a Review"</span> — Then Never Do.
+            <h1 className="hero-title" style={{ color: '#0f172a' }}>
+              Dominate Google Maps. Turn Nearby Searches Into <span style={{ color: '#2563eb' }}>Paying Customers</span>.
             </h1>
             <p style={{ fontSize: '1.125rem', color: '#475569', marginBottom: '2.5rem', lineHeight: 1.6, maxWidth: '95%' }}>
-              MyRevLink writes the review for them. They just pick a star rating, tap, and paste. Takes 10 seconds, not 10 minutes.
+              We manage your Google Business Profile end-to-end: verified setup, category optimization, weekly geo-targeted posts, citation cleanup, and automated 5-star review collection. Gain 3–5x more customer calls, direction requests, and walk-ins in 90 days.
             </p>
 
-            <div className="hero-grid-buttons" style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap', width: '100%', marginBottom: '1.5rem' }}>
-              <Link href="/sign-up">
-                <Button variant="primary" style={{ padding: '1.25rem 2.5rem', fontSize: '1rem', borderRadius: '8px', background: '#3b82f6', border: 'none', boxShadow: '0 4px 14px rgba(59, 130, 246, 0.4)' }}>Get Started Free</Button>
-              </Link>
-              <Link href="/demo">
-                <Button variant="secondary" style={{ padding: '1.25rem 2.5rem', fontSize: '1rem', borderRadius: '8px', background: 'transparent', border: '2px solid #3b82f6', color: '#3b82f6', fontWeight: 600 }}>
-                  View Demo
+            <div className="hero-grid-buttons" style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap', width: '100%', marginBottom: '1.75rem' }}>
+              <Link href="/services/google-business-management#audit-form">
+                <Button variant="primary" style={{ padding: '1.25rem 2.25rem', fontSize: '1rem', borderRadius: '9999px', background: 'linear-gradient(135deg, #1d4ed8 0%, #2563eb 100%)', border: 'none', boxShadow: '0 8px 24px rgba(37, 99, 235, 0.4)', fontWeight: 800 }}>
+                  Get Free GMB Audit &rarr;
                 </Button>
+              </Link>
+              <Link href="/services/google-business-management">
+                <Button variant="secondary" style={{ padding: '1.25rem 2rem', fontSize: '1rem', borderRadius: '9999px', background: '#ffffff', border: '2px solid #2563eb', color: '#1d4ed8', fontWeight: 700, boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+                  Explore Service Plans
+                </Button>
+              </Link>
+              <Link href="/demo" style={{ fontSize: '0.9rem', fontWeight: 700, color: '#475569', textDecoration: 'underline', paddingLeft: '0.5rem' }}>
+                View Live Demo
               </Link>
             </div>
 
-            <div style={{ display: 'flex', gap: '1.5rem', color: '#475569', fontSize: '0.875rem', fontWeight: 500 }}>
+            {/* Benefit Checkpoints */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: '0.75rem', width: '100%', color: '#334155', fontSize: '0.875rem', fontWeight: 600 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                No Credit Card Required
+                <span style={{ width: '18px', height: '18px', borderRadius: '50%', background: '#dcfce7', color: '#16a34a', display: 'grid', placeItems: 'center', flexShrink: 0 }}>✓</span>
+                Fully Optimized in 7 Days
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                Start for Free
+                <span style={{ width: '18px', height: '18px', borderRadius: '50%', background: '#dcfce7', color: '#16a34a', display: 'grid', placeItems: 'center', flexShrink: 0 }}>✓</span>
+                Avg. 3–5x Call & Direction Growth
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span style={{ width: '18px', height: '18px', borderRadius: '50%', background: '#dcfce7', color: '#16a34a', display: 'grid', placeItems: 'center', flexShrink: 0 }}>✓</span>
+                Weekly Posts & Geotagged Media
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span style={{ width: '18px', height: '18px', borderRadius: '50%', background: '#dcfce7', color: '#16a34a', display: 'grid', placeItems: 'center', flexShrink: 0 }}>✓</span>
+                AI Review QR Stand Kit Included
               </div>
             </div>
           </div>
 
-          {/* RIGHT COLUMN */}
+          {/* RIGHT COLUMN: INTERACTIVE GOOGLE 3-PACK & GMB SHOWCASE */}
           <div style={{ position: 'relative', display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%' }}>
-            {/* Soft decorative background glow */}
-            <div style={{
-              position: 'absolute',
-              width: '120%',
-              height: '120%',
-              background: 'radial-gradient(circle, rgba(59,130,246,0.12) 0%, rgba(139,92,246,0.04) 50%, rgba(255,255,255,0) 70%)',
-              zIndex: 0,
-              pointerEvents: 'none'
-            }} />
-            
-            <div className="hero-mockup-wrapper" style={{ position: 'relative', zIndex: 1, width: '100%', maxWidth: '750px', display: 'flex', justifyContent: 'center' }}>
-              <Image 
-                src="/hero-platform.png" 
-                alt="MyRevLink Platform Mockup" 
-                width={1000} 
-                height={750} 
-                style={{ 
-                  width: '100%', 
-                  height: 'auto', 
-                  filter: 'drop-shadow(0 20px 40px rgba(15, 23, 42, 0.08))', 
-                  borderRadius: '20px',
-                  objectFit: 'contain'
-                }}
-                priority
-              />
+            <div className="hero-mockup-wrapper" style={{ position: 'relative', zIndex: 1, width: '100%', maxWidth: '680px' }}>
+              <GmbHeroShowcase />
             </div>
           </div>
 
         </div>
       </section>
 
-      {/* TRUST BANNER */}
-      <div style={{ width: '100%', padding: '4rem 1.5rem', background: 'transparent', borderBottom: '1px solid #f1f5f9' }}>
+      {/* TRUST BANNER: LOCAL SEO KEY PERFORMANCE PROMISES */}
+      <div style={{ width: '100%', padding: '3.5rem 1.5rem', background: '#ffffff', borderBottom: '1px solid #f1f5f9' }}>
         <div className="container" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', flexWrap: 'wrap', gap: '3rem' }}>
           
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
-            <span style={{ fontWeight: 700, fontSize: '1.3rem', color: '#6b7280' }}>More 5-Star Reviews</span>
+            <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#eff6ff', color: '#2563eb', display: 'grid', placeItems: 'center' }}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            </div>
+            <div>
+              <div style={{ fontWeight: 800, fontSize: '1rem', color: '#0f172a' }}>Google 3-Pack Rankings</div>
+              <div style={{ fontSize: '0.75rem', color: '#64748b' }}>Top 3 Local Placement</div>
+            </div>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-            <span style={{ fontWeight: 700, fontSize: '1.3rem', color: '#6b7280' }}>Better Local SEO</span>
+            <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#ecfdf5', color: '#059669', display: 'grid', placeItems: 'center' }}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+            </div>
+            <div>
+              <div style={{ fontWeight: 800, fontSize: '1rem', color: '#0f172a' }}>3–5x Inbound Calls</div>
+              <div style={{ fontSize: '0.75rem', color: '#64748b' }}>Measurable Lead Growth</div>
+            </div>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
-            <span style={{ fontWeight: 700, fontSize: '1.3rem', color: '#6b7280' }}>100% Google Compliant</span>
+            <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#fef3c7', color: '#d97706', display: 'grid', placeItems: 'center' }}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+            </div>
+            <div>
+              <div style={{ fontWeight: 800, fontSize: '1rem', color: '#0f172a' }}>Automated 5-Star Reviews</div>
+              <div style={{ fontSize: '0.75rem', color: '#64748b' }}>Proprietary QR Generator</div>
+            </div>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
-            <span style={{ fontWeight: 700, fontSize: '1.3rem', color: '#6b7280' }}>Instant Setup</span>
+            <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#ede9fe', color: '#7c3aed', display: 'grid', placeItems: 'center' }}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+            </div>
+            <div>
+              <div style={{ fontWeight: 800, fontSize: '1rem', color: '#0f172a' }}>100% Policy Compliant</div>
+              <div style={{ fontSize: '0.75rem', color: '#64748b' }}>Suspension Defense</div>
+            </div>
           </div>
 
         </div>
@@ -416,6 +432,68 @@ export default async function Home() {
           </div>
           
           <div className="features-grid">
+            
+            {/* Spotlight Flagship Card: Google Business Management */}
+            <div style={{
+              gridColumn: '1 / -1',
+              background: 'linear-gradient(135deg, #0b1528 0%, #0f172a 100%)',
+              color: '#ffffff',
+              borderRadius: '28px',
+              padding: '3rem',
+              boxShadow: '0 20px 40px -15px rgba(15, 23, 42, 0.2)',
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+              gap: '2.5rem',
+              alignItems: 'center',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
+            }}>
+              <div>
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(37, 99, 235, 0.25)', color: '#93c5fd', padding: '0.35rem 0.85rem', borderRadius: '9999px', fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '1rem' }}>
+                  ★ Main Service Offering
+                </div>
+                <h3 style={{ fontSize: 'clamp(1.75rem, 3vw, 2.5rem)', fontWeight: 800, lineHeight: 1.15, marginBottom: '1rem', color: '#ffffff' }}>
+                  Done-For-You Google Business Management
+                </h3>
+                <p style={{ color: '#cbd5e1', fontSize: '1.05rem', lineHeight: 1.6, marginBottom: '1.5rem' }}>
+                  Too busy running your operations? Hand over your Google Business Profile to our local SEO team. We handle setup, weekly geo-targeted posts, citation cleanup, review responses, and continuous 3-pack optimization so local customers find and call you first.
+                </p>
+                <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+                  <Link href="/services/google-business-management">
+                    <Button variant="primary" style={{ padding: '0.85rem 1.75rem', borderRadius: '9999px', background: '#2563eb', fontWeight: 700, fontSize: '0.9375rem' }}>
+                      Explore GMB Management &rarr;
+                    </Button>
+                  </Link>
+                  <Link href="/services/google-business-management#audit-form">
+                    <Button variant="secondary" style={{ padding: '0.85rem 1.75rem', borderRadius: '9999px', background: 'transparent', border: '1px solid rgba(255,255,255,0.3)', color: '#ffffff', fontWeight: 700, fontSize: '0.9375rem' }}>
+                      Claim Free GMB Audit
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+
+              <div style={{ background: 'rgba(255, 255, 255, 0.05)', borderRadius: '20px', padding: '1.75rem', border: '1px solid rgba(255, 255, 255, 0.1)' }}>
+                <div style={{ fontSize: '0.8125rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#60a5fa', marginBottom: '1rem' }}>
+                  What Our Team Delivers Every Month:
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem', fontSize: '0.9rem', color: '#e2e8f0' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                    <span style={{ color: '#4ade80' }}>✓</span> 4 Weekly High-Converting Google Posts & Offers
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                    <span style={{ color: '#4ade80' }}>✓</span> EXIF Geotagged Photos & Interior/Exterior Visuals
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                    <span style={{ color: '#4ade80' }}>✓</span> 100% Review Responses Within 24 Hours
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                    <span style={{ color: '#4ade80' }}>✓</span> Local Citation Building & NAP Consistency Across 50+ Directories
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                    <span style={{ color: '#4ade80' }}>✓</span> Monthly Google Map Pack Rankings & Call Reports
+                  </div>
+                </div>
+              </div>
+            </div>
             
             {/* Pillar 1: Business Profile */}
             <article className="feature-card">

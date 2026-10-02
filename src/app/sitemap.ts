@@ -7,6 +7,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // 1. Static Pages
   const staticPages = [
     '',
+    '/services/google-business-management',
+    '/services/google-my-business',
     '/about-us',
     '/contact-us',
     '/privacy-policy',
@@ -15,7 +17,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     url: `${baseUrl}${route}`,
     lastModified: new Date(),
     changeFrequency: 'daily' as const,
-    priority: route === '' ? 1.0 : 0.8,
+    priority: route === '' || route.startsWith('/services') ? 1.0 : 0.8,
   }));
 
   // 2. Industry Pillar Pages

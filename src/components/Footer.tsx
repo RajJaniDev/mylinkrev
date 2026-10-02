@@ -20,8 +20,22 @@ export default function Footer() {
         </div>
         
         <div>
-          <h4 style={{ marginBottom: "1.25rem", color: "#0f172a", fontSize: "0.95rem", fontWeight: 700 }}>Product</h4>
+          <h4 style={{ marginBottom: "1.25rem", color: "#0f172a", fontSize: "0.95rem", fontWeight: 700 }}>Services</h4>
           <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+            <Link href="/services/google-business-management" style={{ color: "#2563eb", fontWeight: 700, fontSize: "0.875rem", textDecoration: "none", transition: "color 0.2s" }}>
+              Google Business Management <span style={{ fontSize: '0.65rem', background: '#dbeafe', color: '#1d4ed8', padding: '2px 6px', borderRadius: '4px', marginLeft: '4px' }}>Main</span>
+            </Link>
+            <Link href="/services/google-business-management#audit-form" style={{ color: "#475569", fontSize: "0.875rem", textDecoration: "none", transition: "color 0.2s" }}>Free GMB Audit</Link>
+            <Link href="/services/google-business-management#pricing" style={{ color: "#475569", fontSize: "0.875rem", textDecoration: "none", transition: "color 0.2s" }}>GMB Pricing Plans</Link>
+            <Link href="/services/google-business-management#faq" style={{ color: "#475569", fontSize: "0.875rem", textDecoration: "none", transition: "color 0.2s" }}>Local SEO FAQ</Link>
+          </div>
+        </div>
+
+        <div>
+          <h4 style={{ marginBottom: "1.25rem", color: "#0f172a", fontSize: "0.95rem", fontWeight: 700 }}>Tools</h4>
+          <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+            <Link href="/tools/google-review-qr" style={{ color: "#475569", fontSize: "0.875rem", textDecoration: "none", transition: "color 0.2s" }}>AI Google Review QR</Link>
+            <Link href="/tools/digital-business-card" style={{ color: "#475569", fontSize: "0.875rem", textDecoration: "none", transition: "color 0.2s" }}>Digital Business Card</Link>
             <Link href="/#pricing" style={{ color: "#475569", fontSize: "0.875rem", textDecoration: "none", transition: "color 0.2s" }}>Pricing</Link>
             <Link href="/sign-in" style={{ color: "#475569", fontSize: "0.875rem", textDecoration: "none", transition: "color 0.2s" }}>Login</Link>
           </div>
