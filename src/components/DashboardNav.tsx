@@ -1,100 +1,25 @@
-"use client";
+'use client';
 
-import React from "react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { LayoutDashboard, PanelTop, Inbox, QrCode, MessageSquare } from 'lucide-react';
 
-export function DashboardNav({ 
-  leadsCount = 0,
-  feedbackCount = 0 
-}: { 
-  leadsCount?: number;
-  feedbackCount?: number;
-}) {
+export function DashboardNav({ leadsCount = 0, feedbackCount = 0 }: { leadsCount?: number; feedbackCount?: number }) {
   const pathname = usePathname();
-
-  const isProfileActive = pathname === "/dashboard";
-  const isQrActive = pathname === "/dashboard/qr";
-  const isLeadsActive = pathname === "/dashboard/leads";
-  const isFeedbackActive = pathname === "/dashboard/feedback";
-
-  return (
-    <div style={{ 
-      display: "flex", 
-      gap: "0.75rem", 
-      borderBottom: "1px solid var(--border)", 
-      paddingBottom: "1rem", 
-      marginBottom: "2rem",
-      flexWrap: "wrap"
-    }}>
-      <Link 
-        href="/dashboard" 
-        style={{
-          textDecoration: "none",
-          padding: "0.6rem 1.2rem",
-          borderRadius: "var(--radius-md)",
-          fontWeight: 600,
-          fontSize: "0.95rem",
-          transition: "all 0.2s",
-          background: isProfileActive ? "linear-gradient(90deg, var(--primary), var(--accent))" : "rgba(255, 255, 255, 0.03)",
-          color: isProfileActive ? "white" : "var(--secondary-foreground)",
-          border: isProfileActive ? "none" : "1px solid var(--border)",
-          boxShadow: isProfileActive ? "0 4px 12px rgba(59, 130, 246, 0.25)" : "none"
-        }}
-      >
-        Profile Settings
-      </Link>
-      <Link 
-        href="/dashboard/qr" 
-        style={{
-          textDecoration: "none",
-          padding: "0.6rem 1.2rem",
-          borderRadius: "var(--radius-md)",
-          fontWeight: 600,
-          fontSize: "0.95rem",
-          transition: "all 0.2s",
-          background: isQrActive ? "linear-gradient(90deg, var(--primary), var(--accent))" : "rgba(255, 255, 255, 0.03)",
-          color: isQrActive ? "white" : "var(--secondary-foreground)",
-          border: isQrActive ? "none" : "1px solid var(--border)",
-          boxShadow: isQrActive ? "0 4px 12px rgba(59, 130, 246, 0.25)" : "none"
-        }}
-      >
-        Review QR Poster
-      </Link>
-      <Link 
-        href="/dashboard/leads" 
-        style={{
-          textDecoration: "none",
-          padding: "0.6rem 1.2rem",
-          borderRadius: "var(--radius-md)",
-          fontWeight: 600,
-          fontSize: "0.95rem",
-          transition: "all 0.2s",
-          background: isLeadsActive ? "linear-gradient(90deg, var(--primary), var(--accent))" : "rgba(255, 255, 255, 0.03)",
-          color: isLeadsActive ? "white" : "var(--secondary-foreground)",
-          border: isLeadsActive ? "none" : "1px solid var(--border)",
-          boxShadow: isLeadsActive ? "0 4px 12px rgba(59, 130, 246, 0.25)" : "none"
-        }}
-      >
-        Leads & Inquiries {leadsCount > 0 ? `(${leadsCount})` : ""}
-      </Link>
-      <Link 
-        href="/dashboard/feedback" 
-        style={{
-          textDecoration: "none",
-          padding: "0.6rem 1.2rem",
-          borderRadius: "var(--radius-md)",
-          fontWeight: 600,
-          fontSize: "0.95rem",
-          transition: "all 0.2s",
-          background: isFeedbackActive ? "linear-gradient(90deg, var(--primary), var(--accent))" : "rgba(255, 255, 255, 0.03)",
-          color: isFeedbackActive ? "white" : "var(--secondary-foreground)",
-          border: isFeedbackActive ? "none" : "1px solid var(--border)",
-          boxShadow: isFeedbackActive ? "0 4px 12px rgba(59, 130, 246, 0.25)" : "none"
-        }}
-      >
-        Customer Feedback {feedbackCount > 0 ? `(${feedbackCount})` : ""}
-      </Link>
-    </div>
-  );
+  const items = [
+    { href: '/dashboard', label: 'Overview', icon: LayoutDashboard, count: 0 },
+    { href: '/dashboard/profile', label: 'My page', icon: PanelTop, count: 0 },
+    { href: '/dashboard/leads', label: 'Inquiries', icon: Inbox, count: leadsCount },
+  ];
+  const tools = [
+    { href: '/dashboard/qr', label: 'Review QR', icon: QrCode, count: 0 },
+    { href: '/dashboard/feedback', label: 'Feedback', icon: MessageSquare, count: feedbackCount },
+  ];
+  function render(item: typeof items[number]) {
+    const Icon = item.icon;
+    return <Link key={item.href} href={item.href} className={`dash-nav-link ${pathname === item.href ? 'is-active' : ''}`} aria-current={pathname === item.href ? 'page' : undefined}>
+      <Icon size={18}/><span>{item.label}</span>{item.count > 0 && <span className="dash-nav-count">{item.count}</span>}
+    </Link>;
+  }
+  return <nav aria-label="Dashboard navigation" className="dash-navigation"><div className="dash-nav-group">{items.map(render)}</div><div className="dash-nav-group dash-optional"><span className="dash-nav-label">OPTIONAL TOOLS</span>{tools.map(render)}</div></nav>;
 }

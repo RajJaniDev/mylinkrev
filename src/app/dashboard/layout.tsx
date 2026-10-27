@@ -1,103 +1,32 @@
-import { currentUser } from "@clerk/nextjs/server";
-import { redirect } from "next/navigation";
-import { supabase } from "@/lib/supabase";
-import { UserButton } from "@clerk/nextjs";
-import { DashboardNav } from "@/components/DashboardNav";
-import { DashboardLayoutClient } from "@/components/DashboardLayoutClient";
+import type { Metadata } from 'next';
+import Link from 'next/link';
+import { currentUser } from '@clerk/nextjs/server';
+import { UserButton } from '@clerk/nextjs';
+import { redirect } from 'next/navigation';
+import { ArrowUpRight, Link2, CircleHelp } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
+import { DashboardNav } from '@/components/DashboardNav';
+import { DashboardLayoutClient } from '@/components/DashboardLayoutClient';
+import './dashboard.css';
 
-export default async function DashboardLayout({
-  children
-}: {
-  children: React.ReactNode;
-}) {
+export const metadata: Metadata = { title: 'Your workspace | MyRevLink', robots: { index: false, follow: false } };
+
+export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const user = await currentUser();
-  if (!user) redirect("/sign-in");
-
-  // Fetch business for this user
-  const { data: business } = await supabase
-    .from("businesses")
-    .select("*")
-    .eq("user_id", user.id)
-    .single();
-
-  if (!business) {
-    return (
-      <main className="dashboard-layout-wrapper animate-fade-in">
-        <div className="dashboard-main-content" style={{ maxWidth: "600px", margin: "0 auto" }}>
-          <div className="glass-card" style={{ padding: "3rem 2rem" }}>
-            <div className="dashboard-header" style={{ marginBottom: "2rem" }}>
-              <h1 className="dashboard-title">Your MyRevLink</h1>
-              <UserButton />
-            </div>
-            {children}
-          </div>
-        </div>
-      </main>
-    );
-  }
-
-  const leadStages = Array.isArray(business.social_links?.lead_stages) ? business.social_links.lead_stages : ["New", "Contacted", "Accepted", "Rejected"];
-  const firstStage = leadStages[0] || "New";
+  if (!user) redirect('/sign-in');
+  const { data: business, error } = await supabase.from('businesses').select('*').eq('user_id', user.id).maybeSingle();
+  if (error) return <div className="dashboard-app dash-welcome"><div className="dash-welcome-card"><h1>We couldn’t load your workspace.</h1><p>Your data hasn’t been changed. Try loading the dashboard again.</p><Link className="dash-button" href="/dashboard">Try again</Link></div></div>;
+  if (!business) return <div className="dashboard-app dash-welcome"><header className="dash-welcome-header"><Link href="/" className="dash-brand"><span><Link2 size={21}/></span>myrevlink.</Link><UserButton/></header><main className="dash-welcome-card">{children}</main><p className="dash-welcome-help">Need a hand? <Link href="/contact-us">Get in touch</Link></p></div>;
+  const socials = business.social_links || {};
+  const stages = Array.isArray(socials.lead_stages) && socials.lead_stages.length ? socials.lead_stages : ['New', 'Contacted', 'Accepted', 'Rejected'];
   const leads = Array.isArray(business.leads) ? business.leads : [];
-  const newLeadsCount = leads.filter((lead: any) => 
-    !lead.status || 
-    lead.status === firstStage || 
-    lead.status === "New" || 
-    lead.status === "new"
-  ).length;
-
-  const feedbacks = Array.isArray(business.feedbacks)
-    ? business.feedbacks
-    : (Array.isArray(business.social_links?.feedbacks) ? business.social_links.feedbacks : []);
-  const feedbackCount = feedbacks.length;
-
-  return (
-    <DashboardLayoutClient slug={business.slug}>
-      <div className="glass-card" style={{ padding: "2.5rem 2rem", width: "100%" }}>
-        <div className="dashboard-header" style={{ marginBottom: '1rem' }}>
-          <h1 className="dashboard-title">Dashboard</h1>
-          <div className="dashboard-settings-btn">
-            <span className="hide-on-mobile" style={{ fontSize: '0.875rem', fontWeight: 500 }}>Settings & Logout</span>
-            <UserButton />
-          </div>
-        </div>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '-0.5rem', marginBottom: '1.5rem' }}>
-          <span style={{ fontSize: '0.85rem', color: 'var(--muted)' }}>Account Plan:</span>
-          {(business.payment_status === "active" || business.payment_status === "completed") ? (
-            <span style={{
-              fontSize: "0.75rem",
-              fontWeight: 700,
-              padding: "0.25rem 0.6rem",
-              borderRadius: "9999px",
-              backgroundColor: "rgba(16, 185, 129, 0.15)",
-              color: "#10b981",
-              border: "1px solid rgba(16, 185, 129, 0.3)",
-              textTransform: 'uppercase'
-            }}>
-              Pro User
-            </span>
-          ) : (
-            <span style={{
-              fontSize: "0.75rem",
-              fontWeight: 700,
-              padding: "0.25rem 0.6rem",
-              borderRadius: "9999px",
-              backgroundColor: "rgba(59, 130, 246, 0.15)",
-              color: "#3b82f6",
-              border: "1px solid rgba(59, 130, 246, 0.3)",
-              textTransform: 'uppercase'
-            }}>
-              Free User
-            </span>
-          )}
-        </div>
-
-        {/* Shared Top Navigation Menu */}
-        <DashboardNav leadsCount={newLeadsCount} feedbackCount={feedbackCount} />
-
-        {children}
-      </div>
-    </DashboardLayoutClient>
-  );
+  const newCount = leads.filter((lead: { status?: string }) => !lead.status || lead.status === stages[0]).length;
+  const feedbacks = Array.isArray(business.feedbacks) ? business.feedbacks : Array.isArray(socials.feedbacks) ? socials.feedbacks : [];
+  const paid = ['active', 'completed'].includes(business.payment_status);
+  return <DashboardLayoutClient name={business.name} account={<UserButton/>} sidebar={<>
+    <Link href="/" className="dash-brand"><span><Link2 size={21}/></span>myrevlink.</Link>
+    <div className="dash-business"><div className="dash-business-avatar">{business.name.slice(0, 1).toUpperCase()}</div><div><strong>{business.name}</strong><span>{paid ? 'Pro plan' : 'Free plan'}</span></div></div>
+    <DashboardNav leadsCount={newCount} feedbackCount={feedbacks.length}/>
+    <div className="dash-sidebar-bottom"><Link href={`/b/${business.slug}`} target="_blank" rel="noopener noreferrer"><ArrowUpRight size={17}/> View public page</Link><Link href="/contact-us"><CircleHelp size={17}/> Help & support</Link><p>A small link. Your next opportunity.</p></div>
+  </>}>{children}</DashboardLayoutClient>;
 }

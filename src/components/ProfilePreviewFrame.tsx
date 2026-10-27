@@ -1,44 +1,15 @@
-"use client";
+'use client';
 
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from 'react';
+import { RefreshCw } from 'lucide-react';
 
 export function ProfilePreviewFrame({ slug }: { slug?: string }) {
-  const [origin, setOrigin] = useState("");
-
+  const [revision, setRevision] = useState(0);
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      setOrigin(window.location.origin);
-    }
+    const refresh = () => setRevision(value => value + 1);
+    window.addEventListener('myrevlink:profile-saved', refresh);
+    return () => window.removeEventListener('myrevlink:profile-saved', refresh);
   }, []);
-
-  if (!slug || !origin) {
-    return (
-      <div className="phone-frame-placeholder">
-        <div className="phone-screen-placeholder">
-          <p style={{ color: "var(--muted)", fontSize: "0.875rem" }}>Register your business to see live preview</p>
-        </div>
-      </div>
-    );
-  }
-
-  const previewUrl = `${origin}/b/${slug}`;
-
-  return (
-    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "1rem" }}>
-      <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", color: "var(--muted)", fontSize: "0.875rem" }}>
-        <span style={{ display: "inline-block", width: "8px", height: "8px", borderRadius: "50%", background: "#10b981", animation: "pulse 2s infinite" }} />
-        <span>Live Preview</span>
-      </div>
-      
-      <div className="phone-frame">
-        <div className="phone-notch" />
-        <iframe
-          src={previewUrl}
-          className="phone-iframe"
-          title="Profile Preview"
-          key={previewUrl} // Force reload when slug changes
-        />
-      </div>
-    </div>
-  );
+  if (!slug) return <p className="dash-field-help">Create your page to see a preview.</p>;
+  return <div className="dash-preview-frame"><button type="button" className="dash-preview-refresh" onClick={() => setRevision(value => value + 1)}><RefreshCw size={13}/> Refresh saved page</button><iframe src={`/b/${slug}`} key={`${slug}-${revision}`} title="Your saved public profile" loading="lazy"/></div>;
 }

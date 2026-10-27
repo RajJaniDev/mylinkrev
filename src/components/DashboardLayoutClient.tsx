@@ -1,36 +1,10 @@
-"use client";
+'use client';
 
-import React from "react";
-import { usePathname } from "next/navigation";
-import { ProfilePreviewFrame } from "./ProfilePreviewFrame";
+import { usePathname } from 'next/navigation';
+import type { ReactNode } from 'react';
 
-interface DashboardLayoutClientProps {
-  slug: string;
-  children: React.ReactNode;
-}
-
-export function DashboardLayoutClient({ slug, children }: DashboardLayoutClientProps) {
+export function DashboardLayoutClient({ children, sidebar, account, name }: { children: ReactNode; sidebar: ReactNode; account: ReactNode; name: string }) {
   const pathname = usePathname();
-  const isQrPage = pathname === "/dashboard/qr";
-
-  if (isQrPage) {
-    return (
-      <main className="animate-fade-in" style={{ width: "100%", maxWidth: "1200px", margin: "0 auto", padding: "2.5rem 1rem" }}>
-        {children}
-      </main>
-    );
-  }
-
-  return (
-    <main className="dashboard-layout-wrapper animate-fade-in">
-      <div className="dashboard-main-content">
-        {children}
-      </div>
-
-      {/* Desktop Live Phone Preview Panel (hidden on QR manage page) */}
-      <div className="dashboard-preview-panel">
-        <ProfilePreviewFrame slug={slug} />
-      </div>
-    </main>
-  );
+  const section = pathname === '/dashboard/profile' ? 'My page' : pathname === '/dashboard/leads' ? 'Inquiries' : pathname === '/dashboard/qr' ? 'Review QR' : pathname === '/dashboard/feedback' ? 'Feedback' : 'Overview';
+  return <div className="dashboard-app"><a href="#dashboard-content" className="dash-skip">Skip to content</a><aside className="dash-sidebar">{sidebar}</aside><div className="dash-workspace"><header className="dash-topbar"><div className="dash-breadcrumb"><span>Your workspace</span><span>/</span><strong>{section}</strong></div><div className="dash-account"><span>{name}</span>{account}</div></header><main id="dashboard-content" className={`dash-content ${pathname === '/dashboard/qr' ? 'dash-content-wide' : ''}`}>{children}</main></div></div>;
 }
