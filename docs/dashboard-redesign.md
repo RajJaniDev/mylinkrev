@@ -34,3 +34,9 @@ Unsaved changes show a visible status, warn on refresh/close and intercept click
 ## Remaining work outside this UI update
 
 Run a controlled signed-in test against the deployed Clerk/Supabase setup: create a profile, save every editor section, reload, submit a test inquiry, move/rename stages and verify ownership isolation. The existing JSON-array storage concurrency concerns and payment lifecycle/data-policy findings in the profitability assessment remain separate work. No database schema or billing-price changes were made, and nothing was deployed.
+
+## Mobile-first requirement — founder feedback
+
+Most users access the dashboard on mobile. Treat phone usability as the primary design constraint in future changes: readable 16px body/form text, 14px supporting text, at least 44px tap targets, no horizontal page overflow, full-width primary actions and layouts checked at narrow phone widths. Do not scale text down to fit multiple columns. The overview stats now use stacked compact rows, lead stage selectors and save buttons span the available width, and the three core navigation items fit without horizontal scrolling. Optional tools are in a mobile More menu. Zoom remains enabled.
+
+Mobile follow-up checks: actual components were rendered in 390px and 320px iframe viewports with synthetic data. The overview, editor and inquiries had no horizontal overflow at 390px; the editor and both registration steps had none at 320px. The name input computed to 16px text and about 50px height. The mobile More menu opened and measured 242px within a 320px viewport. The temporary fixture and auth exception were removed after checking. Live devices, virtual-keyboard behavior and signed-in persistence still need device testing.
