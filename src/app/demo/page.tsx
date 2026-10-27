@@ -3,7 +3,7 @@ import DemoDashboard from "./DemoClient";
 
 export const metadata: Metadata = {
   title: "Live Interactive Demo | MyRevLink",
-  description: "Try our interactive Google review link and QR generator sandbox. See how the AI review writer and Linktree-style profile work in real time.",
+  description: "Explore the MyRevLink profile sandbox. Try customization, links and content in an interactive preview before creating your own page.",
 };
 
 export default function DemoPage() {

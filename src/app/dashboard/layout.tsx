@@ -26,7 +26,7 @@ export default async function DashboardLayout({
         <div className="dashboard-main-content" style={{ maxWidth: "600px", margin: "0 auto" }}>
           <div className="glass-card" style={{ padding: "3rem 2rem" }}>
             <div className="dashboard-header" style={{ marginBottom: "2rem" }}>
-              <h1 className="dashboard-title">Dashboard</h1>
+              <h1 className="dashboard-title">Your MyRevLink</h1>
               <UserButton />
             </div>
             {children}
@@ -36,7 +36,7 @@ export default async function DashboardLayout({
     );
   }
 
-  const leadStages = Array.isArray(business.lead_stages) ? business.lead_stages : ["New", "Contacted", "Accepted", "Rejected"];
+  const leadStages = Array.isArray(business.social_links?.lead_stages) ? business.social_links.lead_stages : ["New", "Contacted", "Accepted", "Rejected"];
   const firstStage = leadStages[0] || "New";
   const leads = Array.isArray(business.leads) ? business.leads : [];
   const newLeadsCount = leads.filter((lead: any) => 

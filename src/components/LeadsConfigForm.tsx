@@ -10,7 +10,7 @@ interface LeadsConfigFormProps {
 }
 
 export function LeadsConfigForm({ socials, action }: LeadsConfigFormProps) {
-  const [isCollapsed, setIsCollapsed] = useState(true);
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   return (
     <div style={{ 

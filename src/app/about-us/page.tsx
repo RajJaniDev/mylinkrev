@@ -5,7 +5,7 @@ import Footer from "@/components/Footer";
 
 export const metadata: Metadata = {
   title: "About Us | MyRevLink",
-  description: "Learn more about MyRevLink and our mission to help local businesses automate their Google Reviews and grow their local search visibility.",
+  description: "Learn about MyRevLink: link-in-bio pages and simple inquiry management for independent professionals.",
 };
 
 export default function AboutUs() {
@@ -20,22 +20,22 @@ export default function AboutUs() {
           <h1 style={{ fontSize: '2.5rem', marginBottom: '2rem' }}>About Us</h1>
           
           <p style={{ fontSize: '1.125rem', marginBottom: '1.5rem', color: 'var(--secondary-foreground)' }}>
-            At MyRevLink, we believe that local businesses are the backbone of our communities. Our mission is to help these businesses thrive in the digital age by making it incredibly simple to build and showcase a stellar online reputation.
+            MyRevLink gives independent professionals a simple home for their work online. Coaches, creators, freelancers and astrology consultants can bring their services, content and client inquiries together in one bio link.
           </p>
 
           <h2 style={{ marginTop: '2rem', marginBottom: '1rem' }}>The Problem We Solve</h2>
           <p>
-            We noticed that many excellent local businesses struggled to get Google Reviews, simply because asking customers to write one from scratch was too much friction. Customers are busy, and writing a good review takes time and thought.
+            A social profile can introduce your work, but important information and potential client conversations can get scattered across posts, links and messages. Visitors need a clear next step, and professionals need a practical way to organize inquiries.
           </p>
 
           <h2 style={{ marginTop: '2rem', marginBottom: '1rem' }}>Our Solution</h2>
           <p>
-            We built MyRevLink to bridge this gap. By combining beautiful, mobile-friendly landing pages with cutting-edge AI, we allow customers to generate realistic, SEO-friendly 5-star reviews in just one tap. It's a win-win: customers save time, and businesses get the high-quality reviews they deserve to rank higher on Google Maps and search results.
+            Create a shareable profile, add your service and content links, and enable your inquiry form. Use a simple leads dashboard to search inquiries and move them through your own stages as you follow up. You can link to an existing calendar, website or shop.
           </p>
 
           <h2 style={{ marginTop: '2rem', marginBottom: '1rem' }}>Our Commitment</h2>
           <p>
-            We are committed to providing an affordable, highly effective tool for business owners. No recurring subscriptions—just a simple lifetime fee to unlock everything you need to skyrocket your ratings.
+            Start with a free account and explore the profile and inquiry workflow. The free plan includes up to 7 captured leads. Available Pro pricing and billing terms are shown in your dashboard and checkout before you upgrade.
           </p>
         </div>
       </div>

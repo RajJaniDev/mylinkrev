@@ -1,0 +1,8 @@
+import Link from 'next/link';
+import { ArrowUpRight, Link2 } from 'lucide-react';
+export function MarketingNav() {
+  return <header className="m-nav m-wrap"><Link href="/" className="m-logo" aria-label="MyRevLink home"><span><Link2 size={22} /></span>myrevlink<span className="m-logo-dot">.</span></Link><nav aria-label="Main navigation" className="m-nav-links"><Link href="/#features">The platform</Link><Link href="/#for-you">Who it’s for</Link><Link href="/#pricing">Pricing</Link></nav><div className="m-nav-actions"><Link href="/sign-in" className="m-login">Log in</Link><Link href="/sign-up" className="m-button m-button-small">Start free <ArrowUpRight size={16}/></Link></div></header>;
+}
+export function MarketingFooter() {
+  return <footer className="m-footer"><div className="m-wrap"><div className="m-footer-top"><div><Link className="m-logo" href="/">myrevlink.</Link><p>A small link. Room for your whole business.</p></div><div><h3>Made for</h3><Link href="/for/coaches">Coaches</Link><Link href="/for/creators">Creators</Link><Link href="/for/freelancers">Freelancers</Link><Link href="/for/astrology">Astrology consultants</Link></div><div><h3>Explore</h3><Link href="/demo">Interactive demo</Link><Link href="/tools/digital-business-card">Digital business card</Link><Link href="/contact-us">Contact us</Link><Link href="/services/google-business-management">Google Business services</Link></div></div><div className="m-footer-bottom"><span>© {new Date().getFullYear()} MyRevLink</span><div><Link href="/privacy-policy">Privacy</Link><Link href="/terms-and-conditions">Terms</Link></div><span>Made for independent people.</span></div></div></footer>;
+}

@@ -12,6 +12,8 @@ import { ShowcaseProductsEditor } from "@/components/ShowcaseProductsEditor";
 import { CustomLinksEditor } from "@/components/CustomLinksEditor";
 import { QRPosterSection } from "@/components/QRPosterSection";
 import RegisterBusinessForm from "@/components/RegisterBusinessForm";
+import { audiences, isAudience } from "@/lib/audiences";
+import { GettingStarted } from "@/components/GettingStarted";
 import { cookies, headers } from "next/headers";
 
 export default async function Dashboard(
@@ -75,30 +77,45 @@ export default async function Dashboard(
   const hasPaid = business?.payment_status === "completed" || business?.payment_status === "active";
 
   // Server action to handle business registration
-  async function registerBusiness(formData: FormData) {
+  async function registerBusiness(_previous: { error: string }, formData: FormData): Promise<{ error: string }> {
     "use server";
     const currentUserReq = await currentUser();
-    if (!currentUserReq) return;
+    if (!currentUserReq) return { error: "Please sign in again to create your page." };
 
-    const name = formData.get("name") as string;
-    const slug = formData.get("slug") as string;
-    if (!name || !slug) return;
-    const finalSlug = slug.toLowerCase().replace(/\s+/g, '-');
+    const name = String(formData.get("name") || "").trim();
+    const slug = String(formData.get("slug") || "").trim().toLowerCase();
+    const description = String(formData.get("description") || "").trim();
+    const audienceValue = String(formData.get("audience") || "coaches");
+    if (!name || name.length > 100 || !/^[a-z0-9]+(-[a-z0-9]+)*$/.test(slug) || slug.length > 60 || description.length > 500 || !isAudience(audienceValue)) {
+      return { error: "Add a name and a valid link using letters, numbers and single hyphens." };
+    }
+    const preset = audiences[audienceValue];
+    const finalSlug = slug;
+    const { data: ownedBusiness, error: ownershipError } = await supabase.from("businesses").select("id").eq("user_id", currentUserReq.id).maybeSingle();
+    if (ownershipError) return { error: "We couldn’t check your account. Please try again." };
+    if (ownedBusiness) redirect("/dashboard");
 
     const { error } = await supabase.from("businesses").insert({
       user_id: currentUserReq.id,
       slug: finalSlug,
       name,
+      description,
       payment_status: 'pending',
       social_links: {
         credits: 7,
-        hide_contact_form: true
+        audience: audienceValue,
+        hide_contact_form: formData.get("capture_leads") !== "on",
+        contact_button_title: preset.cta,
+        contact_form_title: preset.formTitle,
+        contact_success_message: "Thank you for your inquiry. I’ll be in touch using the contact details you provided.",
+        contact_required_fields: "email",
+        lead_stages: [...preset.stages]
       }
     });
 
     if (error) {
       console.error("Supabase insert error:", error);
-      redirect("/dashboard?error=SlugTaken");
+      return { error: error.code === "23505" ? "That link was just taken. Please choose another." : "We couldn’t create your page. Please try again; your details are still here." };
     }
 
     revalidatePath("/dashboard");
@@ -134,6 +151,7 @@ export default async function Dashboard(
     }
     
     const social_links = {
+      ...existingSocials,
       facebook: formData.get("facebook") as string,
       instagram: formData.get("instagram") as string,
       location: formData.get("location") as string,
@@ -190,9 +208,7 @@ export default async function Dashboard(
   if (!business) {
     return (
       <div>
-        <h2>Register Your Business</h2>
-        <p style={{ color: 'var(--muted)', marginBottom: '2rem' }}>Claim your custom link and start for free.</p>
-        <RegisterBusinessForm userId={user.id} priceText={priceText} registerAction={registerBusiness} />
+        <RegisterBusinessForm registerAction={registerBusiness} />
       </div>
     );
   }
@@ -204,8 +220,8 @@ export default async function Dashboard(
           {searchParams.success === 'updated' 
             ? 'Business details updated successfully!' 
             : searchParams.success === 'registered'
-            ? 'Business registered successfully! You have 7 free AI review credits.'
-            : 'Payment successful! Your account is now active.'}
+            ? 'Your page is created. Review your profile, add your links and test your inquiry form before sharing.'
+            : hasPaid ? 'Your Pro account is active.' : 'You’re back from checkout. Your plan will update once payment is confirmed.'}
         </div>
       )}
       
@@ -214,6 +230,8 @@ export default async function Dashboard(
           {searchParams.error === 'SlugTaken' ? 'Error: Could not create business. Make sure you have created the Supabase tables, and that your slug is unique.' : searchParams.error}
         </div>
       )}
+
+      <GettingStarted slug={business.slug} hasBio={Boolean(business.description?.trim())} hasLinks={Boolean(socials.website || socials.instagram || socials.youtube || socials.whatsapp || socials.custom_links?.length)} capturesLeads={!socials.hide_contact_form} />
 
       {/* Premium Subscription / Credits Banner */}
       {!hasPaid ? (
@@ -231,12 +249,12 @@ export default async function Dashboard(
         }}>
           <div>
             <h3 style={{ margin: 0, fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <span>🎁 Free Plan:</span>
+              <span>Free plan:</span>
               <strong style={{ color: 'var(--primary)' }}>{credits} / 7</strong>
-              <span>AI review drafts remaining</span>
+              <span>optional AI review credits remaining</span>
             </h3>
             <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.85rem', color: 'var(--muted)' }}>
-              Upgrade to the Pro Plan for unlimited AI reviews, custom themes, video showcases, and more!
+              Your free page includes up to 7 captured leads. Upgrade when you need more inquiries and customization.
             </p>
           </div>
           <form action="/api/checkout" method="POST">
@@ -258,7 +276,7 @@ export default async function Dashboard(
           fontWeight: 500,
           fontSize: '0.95rem'
         }}>
-          ✨ Pro Plan Active (Unlimited AI Reviews & Premium Features Unlocked)
+          Pro plan active — premium profile features and unlimited inquiries unlocked.
         </div>
       )}
 
@@ -280,7 +298,7 @@ export default async function Dashboard(
       )}
 
       {/* Business Settings Form */}
-      <form action={updateBusinessDetails} style={{ marginTop: '2.5rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+      <form id="profile-settings" action={updateBusinessDetails} style={{ marginTop: '2.5rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
         <input type="hidden" name="businessId" value={business.id} />
         
         <h3 style={{ borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem', margin: 0 }}>Edit Business Profile</h3>

@@ -1,200 +1,44 @@
-"use client";
-
-import React, { useState, useEffect } from "react";
-import { supabase } from "@/lib/supabase";
-import { Input } from "@/components/ui/Input";
-import { Button } from "@/components/ui/Button";
-
-interface RegisterBusinessFormProps {
-  userId: string;
-  priceText: string;
-  registerAction: (formData: FormData) => void;
+'use client';
+import { useEffect, useRef, useState, useActionState } from 'react';
+import { ArrowLeft, ArrowRight, Check, Link2, Sparkles, Compass, Play, BriefcaseBusiness } from 'lucide-react';
+import { useFormStatus } from 'react-dom';
+import { supabase } from '@/lib/supabase';
+import { audiences, isAudience, type Audience } from '@/lib/audiences';
+import './onboarding.css';
+type RegistrationState = { error: string };
+interface Props { registerAction: (previous: RegistrationState, formData: FormData) => Promise<RegistrationState>; }
+function CreateButton({ disabled }: { disabled: boolean }) {
+  const { pending } = useFormStatus();
+  return <button className="ob-primary" type="submit" disabled={disabled || pending}>{pending ? 'Creating your page…' : 'Create my free page'}{!pending && <ArrowRight size={17}/>}</button>;
 }
-
-const slugify = (text: string) => {
-  return text
-    .toLowerCase()
-    .trim()
-    .replace(/[^\w\s-]/g, "") // remove non-word characters
-    .replace(/[\s_]+/g, "-")  // replace spaces/underscores with hyphens
-    .replace(/^-+|-+$/g, ""); // trim leading/trailing hyphens
-};
-
-export default function RegisterBusinessForm({ userId, priceText, registerAction }: RegisterBusinessFormProps) {
-  const [name, setName] = useState("");
-  const [slug, setSlug] = useState("");
-  const [error, setError] = useState("");
-  const [suggestion, setSuggestion] = useState("");
-  const [isChecking, setIsChecking] = useState(false);
-  const [isValidated, setIsValidated] = useState(false);
-
+const slugify = (value: string) => value.toLowerCase().trim().replace(/[^a-z0-9\s_-]/g, '').replace(/[\s_]+/g, '-').replace(/-+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60);
+export default function RegisterBusinessForm({ registerAction }: Props) {
+  const [step, setStep] = useState(1);
+  const [audience, setAudience] = useState<Audience>('coaches');
+  const [name, setName] = useState('');
+  const [slug, setSlug] = useState('');
+  const [description, setDescription] = useState('');
+  const [captureLeads, setCaptureLeads] = useState(true);
+  const [availability, setAvailability] = useState<'idle' | 'checking' | 'available' | 'taken' | 'error'>('idle');
+  const latestCheck = useRef(0);
+  const [state, action] = useActionState(registerAction, { error: '' });
+  const headingRef = useRef<HTMLHeadingElement>(null);
+  const profile = audiences[audience];
   useEffect(() => {
-    // Detect timezone to determine if the user is in India
-    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    const isIndia = tz === "Asia/Kolkata" || tz === "Asia/Calcutta";
-    document.cookie = `user_is_india=${isIndia}; path=/; max-age=31536000`; // Cookie expires in 1 year
+    try { const saved = localStorage.getItem('myrevlink-audience'); if (saved && isAudience(saved)) setAudience(saved); } catch { /* No storage required. */ }
   }, []);
-
-  const checkSlugAvailable = async (testSlug: string) => {
-    const { data, error: dbError } = await supabase
-      .from("businesses")
-      .select("slug")
-      .eq("slug", testSlug)
-      .maybeSingle();
-    return !data && !dbError;
-  };
-
-  const generateAvailableSlugSuggestion = async (baseSlug: string) => {
-    let counter = 1;
-    let suggestionFound = false;
-    let finalSuggestion = "";
-
-    while (!suggestionFound && counter <= 10) {
-      const tempSuggestion = `${baseSlug}-${counter}`;
-      const available = await checkSlugAvailable(tempSuggestion);
-      if (available) {
-        finalSuggestion = tempSuggestion;
-        suggestionFound = true;
-      } else {
-        counter++;
-      }
-    }
-
-    if (!finalSuggestion) {
-      finalSuggestion = `${baseSlug}-${Math.floor(Math.random() * 1000)}`;
-    }
-    return finalSuggestion;
-  };
-
-  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setName(e.target.value);
-  };
-
-  const handleNameBlur = async () => {
-    // Suggest slug only if business name is provided and slug is currently empty
-    if (name.trim() && !slug.trim()) {
-      setIsChecking(true);
-      setError("");
-      setSuggestion("");
-      const generatedSlug = slugify(name);
-      
-      const available = await checkSlugAvailable(generatedSlug);
-      if (available) {
-        setSlug(generatedSlug);
-        setIsValidated(true);
-      } else {
-        setSlug(generatedSlug);
-        setError("Link already taken");
-        const suggested = await generateAvailableSlugSuggestion(generatedSlug);
-        setSuggestion(suggested);
-        setIsValidated(false);
-      }
-      setIsChecking(false);
-    }
-  };
-
-  const handleSlugChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSlug(e.target.value);
-    // Clear validation status on typing
-    setError("");
-    setSuggestion("");
-    setIsValidated(false);
-  };
-
-  const handleSlugBlur = async () => {
-    if (!slug.trim()) return;
-
-    setIsChecking(true);
-    setError("");
-    setSuggestion("");
-    
-    const cleanedSlug = slugify(slug);
-    setSlug(cleanedSlug);
-
-    const available = await checkSlugAvailable(cleanedSlug);
-    if (available) {
-      setIsValidated(true);
-    } else {
-      setError("Link already taken");
-      const suggested = await generateAvailableSlugSuggestion(cleanedSlug);
-      setSuggestion(suggested);
-      setIsValidated(false);
-    }
-    setIsChecking(false);
-  };
-
-  const handleSelectSuggestion = () => {
-    if (suggestion) {
-      setSlug(suggestion);
-      setError("");
-      setSuggestion("");
-      setIsValidated(true); // Suggestion is guaranteed to be available
-    }
-  };
-
-  const isSubmitDisabled = !name.trim() || !slug.trim() || !!error || isChecking;
-
-  return (
-    <form action={registerAction} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-      <input type="hidden" name="userId" value={userId} />
-      
-      <Input
-        label="Business Name"
-        name="name"
-        required
-        value={name}
-        onChange={handleNameChange}
-        onBlur={handleNameBlur}
-        placeholder="e.g. Acme Corp"
-      />
-
-      <div style={{ display: "flex", flexDirection: "column" }}>
-        <Input
-          label="Custom Link (Slug)"
-          name="slug"
-          required
-          value={slug}
-          onChange={handleSlugChange}
-          onBlur={handleSlugBlur}
-          error={error}
-          placeholder="e.g. acme-corp"
-        />
-        
-        {isValidated && !error && (
-          <span style={{ color: "#10b981", fontSize: "0.875rem", display: "block", marginTop: "-1rem", marginBottom: "1.25rem", fontWeight: 500 }}>
-            ✓ Link is available!
-          </span>
-        )}
-
-        {suggestion && (
-          <div style={{ marginTop: "-1rem", marginBottom: "1.25rem", fontSize: "0.875rem" }}>
-            <span style={{ color: "var(--muted)" }}>How about: </span>
-            <button
-              type="button"
-              onClick={handleSelectSuggestion}
-              style={{
-                background: "none",
-                border: "none",
-                color: "var(--primary)",
-                textDecoration: "underline",
-                cursor: "pointer",
-                fontWeight: 500,
-                padding: 0,
-              }}
-            >
-              {suggestion}
-            </button>
-          </div>
-        )}
-      </div>
-
-      <div style={{ fontSize: "0.875rem", color: "var(--muted)", marginBottom: "0.5rem" }}>
-        🎁 You will get <strong>7 free AI review credits</strong> immediately upon registration.
-      </div>
-
-      <Button type="submit" variant="primary" disabled={isSubmitDisabled}>
-        {isChecking ? "Checking link..." : "Register & Start Free"}
-      </Button>
-    </form>
-  );
+  useEffect(() => {
+    const requestId = ++latestCheck.current;
+    if (!slug) return;
+    const timer = setTimeout(async () => {
+      setAvailability('checking');
+      try {
+        const { data, error } = await supabase.from('businesses').select('slug').eq('slug', slug).maybeSingle();
+        if (requestId === latestCheck.current) setAvailability(error ? 'error' : data ? 'taken' : 'available');
+      } catch { if (requestId === latestCheck.current) setAvailability('error'); }
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [slug]);
+  function changeStep(next: number) { setStep(next); requestAnimationFrame(() => headingRef.current?.focus()); }
+  return <div className="onboarding"><div className="ob-progress" aria-label={`Setup step ${step} of 2`}><span className={step >= 1 ? 'active' : ''}/><span className={step >= 2 ? 'active' : ''}/><small>{step} / 2</small></div><span className="ob-eyebrow">A LITTLE ABOUT YOU</span><h2 tabIndex={-1} ref={headingRef}>{step === 1 ? 'What are you building?' : 'Let’s make it yours.'}</h2><p className="ob-intro">{step === 1 ? 'Choose a starting point. We’ll tailor your inquiry form and lead stages. You can change them later.' : 'Add your name, claim your link and give visitors a short introduction.'}</p><form action={action}><input type="hidden" name="audience" value={audience}/>{step === 1 ? <><fieldset className="ob-choices"><legend className="ob-sr-only">Choose your work</legend>{Object.entries(audiences).map(([key, item], index) => { const Icon = [Compass, Play, BriefcaseBusiness, Sparkles][index]; return <label key={key} className={audience === key ? 'ob-choice selected' : 'ob-choice'}><input type="radio" name="audience_choice" value={key} checked={audience === key} onChange={() => setAudience(key as Audience)}/><Icon size={22}/><span><strong>{item.singular}</strong><small>{['Consultations & coaching', 'Content & collaborations', 'Projects & client inquiries', 'Consultations & session inquiries'][index]}</small></span><span className="ob-radio">{audience === key && <Check size={12}/>}</span></label>; })}</fieldset><div className="ob-template"><span><Sparkles size={17}/> Your starting point</span><p>Inquiry button: <strong>{profile.cta}</strong></p><p>Lead stages: {profile.stages.slice(0, 3).join(' → ')} → …</p></div><button type="button" className="ob-primary" onClick={() => changeStep(2)}>Continue <ArrowRight size={17}/></button><p className="ob-footnote">Free to start. No payment details needed.</p></> : <><button type="button" className="ob-back" onClick={() => changeStep(1)}><ArrowLeft size={14}/> Change starting point: {profile.singular}</button><label className="ob-label" htmlFor="ob-name">Your name or brand</label><input id="ob-name" name="name" value={name} maxLength={100} autoComplete="organization" required placeholder={profile.name} onChange={e => { setName(e.target.value); }} onBlur={() => { if (!slug) { setAvailability('idle'); setSlug(slugify(name)); } }}/><label className="ob-label" htmlFor="ob-slug">Your personal link</label><div className="ob-slug"><Link2 size={15}/><span>myrevlink.in/b/</span><input id="ob-slug" name="slug" value={slug} required pattern="[a-z0-9]+(-[a-z0-9]+)*" maxLength={60} aria-describedby="ob-availability" autoComplete="off" placeholder="your-name" onChange={e => { setAvailability('idle'); setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 60)); }}/></div><p className={`ob-availability ${availability}`} id="ob-availability" aria-live="polite">{availability === 'checking' ? 'Checking your link…' : availability === 'available' ? 'This link is available. Yours when you create your page.' : availability === 'taken' ? 'That link is taken. Try adding your specialty or another word.' : availability === 'error' ? 'We couldn’t check availability. We’ll check again when you create your page.' : 'Use letters, numbers and hyphens. Choose carefully: your link cannot be changed later.'}</p><label className="ob-label" htmlFor="ob-bio">A short introduction <span>(optional)</span></label><textarea id="ob-bio" name="description" value={description} maxLength={500} rows={3} placeholder={profile.bio} onChange={e => setDescription(e.target.value)}/><label className="ob-capture"><input type="checkbox" name="capture_leads" checked={captureLeads} onChange={e => setCaptureLeads(e.target.checked)}/><span><strong>Let visitors send me inquiries</strong><small>Your “{profile.cta}” button collects a name, email and message. Manage inquiries in your dashboard. Free includes 7 leads.</small></span></label>{state.error && <p role="alert" className="ob-error">{state.error}</p>}<CreateButton disabled={!name.trim() || !slug || availability === 'taken' || availability === 'checking'}/><p className="ob-footnote">Your page will be public at this link. Add your services and review it before sharing.</p></>}</form></div>;
 }
