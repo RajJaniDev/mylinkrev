@@ -9,7 +9,7 @@ export function DashboardNav({ leadsCount = 0, feedbackCount = 0 }: { leadsCount
   const items = [
     { href: '/dashboard', label: 'Overview', icon: LayoutDashboard, count: 0 },
     { href: '/dashboard/profile', label: 'My page', icon: PanelTop, count: 0 },
-    { href: '/dashboard/leads', label: 'Inquiries', icon: Inbox, count: leadsCount },
+    { href: '/dashboard/leads', label: 'Contacts', icon: Inbox, count: leadsCount },
   ];
   const tools = [
     { href: '/dashboard/qr', label: 'Review QR', icon: QrCode, count: 0 },

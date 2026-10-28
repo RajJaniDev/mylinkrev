@@ -7,6 +7,7 @@ import { ArrowUpRight, Link2, CircleHelp } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { DashboardNav } from '@/components/DashboardNav';
 import { DashboardLayoutClient } from '@/components/DashboardLayoutClient';
+import { loadContacts } from '@/lib/crm-store';
 import './dashboard.css';
 
 export const metadata: Metadata = { title: 'Your workspace | MyRevLink', robots: { index: false, follow: false } };
@@ -19,7 +20,8 @@ export default async function DashboardLayout({ children }: { children: React.Re
   if (!business) return <div className="dashboard-app dash-welcome"><header className="dash-welcome-header"><Link href="/" className="dash-brand"><span><Link2 size={21}/></span>myrevlink.</Link><UserButton appearance={{ elements: { userButtonTrigger: { minWidth: "44px", minHeight: "44px" } } }}/></header><main className="dash-welcome-card">{children}</main><p className="dash-welcome-help">Need a hand? <Link href="/contact-us">Get in touch</Link></p></div>;
   const socials = business.social_links || {};
   const stages = Array.isArray(socials.lead_stages) && socials.lead_stages.length ? socials.lead_stages : ['New', 'Contacted', 'Accepted', 'Rejected'];
-  const leads = Array.isArray(business.leads) ? business.leads : [];
+  const crm = await loadContacts(business);
+  const leads = crm.contacts.filter(contact => !contact.archived_at);
   const newCount = leads.filter((lead: { status?: string }) => !lead.status || lead.status === stages[0]).length;
   const feedbacks = Array.isArray(business.feedbacks) ? business.feedbacks : Array.isArray(socials.feedbacks) ? socials.feedbacks : [];
   const paid = ['active', 'completed'].includes(business.payment_status);

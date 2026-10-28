@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { supabase } from '@/lib/supabase';
 import { audiences, isAudience } from '@/lib/audiences';
 import RegisterBusinessForm from '@/components/RegisterBusinessForm';
+import { loadContacts } from '@/lib/crm-store';
 import { DashboardOverview } from '@/components/dashboard/DashboardOverview';
 
 export default async function Dashboard({ searchParams }: { searchParams: Promise<{ success?: string; error?: string }> }) {
@@ -61,5 +62,6 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
 
 
   if (!business) return <RegisterBusinessForm registerAction={registerBusiness}/>;
-  return <DashboardOverview business={business} firstName={user.firstName} params={params}/>;
+  const crm = await loadContacts(business);
+  return <DashboardOverview business={business} contacts={crm.contacts} firstName={user.firstName} params={params}/>;
 }
